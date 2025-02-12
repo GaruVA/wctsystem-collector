@@ -29,7 +29,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     setError('');
 
     try {
-      const response = await axios.post('http://your-local-ip:5000/api/auth/login', {
+      const response = await axios.post('http://your-local-ip:5000/api/collector/login', {
         username,
         password
       });
