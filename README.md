@@ -1,7 +1,7 @@
 ## WCTSystem Collector
 
 ### Repository Overview
-This repository contains the WCTSystem Collector project, written in TypeScript. It is a mobile application designed to help residents manage their waste disposal efficiently by providing real-time information about smart waste bins.
+This repository contains the WCTSystem Collector project, written in TypeScript. It is a mobile application designed to help drivers manage their waste collection routes efficiently by providing real-time optimized routing, interactive map interfaces, and in-app reporting features.
 
 ### Installation
 1. **Clone the repository:**
@@ -63,3 +63,4 @@ Ensure that the backend Node.js server is running. Follow the instructions in th
 
 ### Progress
 - The React Native app has been initialized with some dependencies and Expo.
+- Implemented login functionality for drivers, allowing secure access to the app and personalized routes.
