@@ -32,11 +32,15 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
       }));
 
       mapRef.current?.fitToCoordinates(formattedCoords, {
-        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+        edgePadding: { top: 20, right: 20, bottom: 150, left: 20 },
         animated: true
       });
     }
   }, [areaData]);
+
+  useEffect(() => {
+    handleRegionChange();
+  }, [areaData, handleRegionChange]);
 
   const centerOnSelectedBin = useCallback(() => {
     if (selectedBin && mapRef.current) {
@@ -68,6 +72,7 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
       }}
       scrollEnabled={false}
       zoomEnabled={false}
+      onMapReady={handleRegionChange} // Added for immediate fit
       onRegionChangeComplete={handleRegionChange}
     >
       <Polygon

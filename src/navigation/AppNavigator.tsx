@@ -15,7 +15,7 @@ const AppNavigator = () => {
       <Stack.Screen
         name="Home"
         component={HomeScreen}
-        options={{ title: 'Cluster Overview' }}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
