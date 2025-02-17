@@ -21,27 +21,29 @@ const AreaState = ({ stats, onCreateRoute, areaName }: AreaStateProps) => (
       <Text style={styles.headerTitle}>{areaName || 'Area Overview'}</Text>
     </View>
 
-    {/* Details */}
-    <View style={styles.detailsContainer}>
-      <View style={styles.detailRow}>
+    {/* Stats in two rows */}
+    <View style={styles.statsRow}>
+      <View style={styles.statBlock}>
         <Text style={styles.label}>Total Bins</Text>
         <Text style={styles.value}>{stats.totalBins}</Text>
       </View>
-      <View style={styles.detailRow}>
+      <View style={styles.statBlock}>
         <Text style={styles.label}>Priority Bins</Text>
         <Text style={styles.value}>{stats.priorityBins}</Text>
       </View>
-      <View style={styles.detailRow}>
+    </View>
+    <View style={styles.statsRow}>
+      <View style={styles.statBlock}>
         <Text style={styles.label}>Average Fill Level</Text>
         <Text style={styles.value}>{stats.avgFill.toFixed(0)}%</Text>
       </View>
-      <View style={styles.detailRow}>
+      <View style={styles.statBlock}>
         <Text style={styles.label}>Urgent Bins</Text>
         <Text style={styles.value}>{stats.urgentBins}</Text>
       </View>
     </View>
 
-    {/* Prominent Create Route button */}
+    {/* Create Route button */}
     <TouchableOpacity style={styles.button} onPress={onCreateRoute}>
       <Text style={styles.buttonText}>Create Route</Text>
     </TouchableOpacity>
@@ -50,47 +52,59 @@ const AreaState = ({ stats, onCreateRoute, areaName }: AreaStateProps) => (
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    margin: 20,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   header: {
-    // Similar to BinState header but centered without extra buttons
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
+    backgroundColor: '#3B82F6',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#fff',
+    textAlign: 'center',
   },
-  detailsContainer: {
-    marginBottom: 20,
-  },
-  detailRow: {
+  statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+    justifyContent: 'space-around',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  statBlock: {
+    alignItems: 'center',
+    flex: 1,
   },
   label: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#6B7280',
   },
   value: {
     fontSize: 18,
     fontWeight: '600',
     color: '#111827',
+    marginTop: 4,
   },
   button: {
-    backgroundColor: '#3B82F6',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
+    backgroundColor: '#10B981',
+    paddingVertical: 14,
+    margin: 16,
+    borderRadius: 12,
   },
   buttonText: {
-    color: '#ffffff',
+    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

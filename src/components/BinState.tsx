@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons'; // Added import for icon
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 interface Bin {
   _id: string;
@@ -20,13 +20,11 @@ interface BinStateProps {
 
 const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => (
   <View style={styles.container}>
-    {/* Header with title and close button */}
+    {/* Header with title and close icon */}
     <View style={styles.header}>
       <Text style={styles.headerTitle}>Bin Details</Text>
       <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-        <Text>
-          <Ionicons name="close" size={24} color="#1F2937" />
-        </Text>
+        <Ionicons name="close" size={24} color="#fff" />
       </TouchableOpacity>
     </View>
 
@@ -42,7 +40,9 @@ const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => (
       </View>
       <View style={styles.detailRow}>
         <Text style={styles.label}>Last Pickup Date</Text>
-        <Text style={styles.value}>{new Date(bin.lastCollected).toLocaleDateString()}</Text>
+        <Text style={styles.value}>
+          {new Date(bin.lastCollected).toLocaleDateString()}
+        </Text>
       </View>
     </View>
 
@@ -55,29 +55,38 @@ const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => (
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    margin: 20,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   header: {
+    backgroundColor: '#EF4444',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#fff',
   },
   closeButton: {
     padding: 4,
   },
-  closeButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
   detailsContainer: {
-    marginBottom: 20,
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   detailRow: {
     flexDirection: 'row',
@@ -94,15 +103,16 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   button: {
-    backgroundColor: '#3B82F6',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
+    backgroundColor: '#10B981',
+    paddingVertical: 14,
+    margin: 16,
+    borderRadius: 12,
   },
   buttonText: {
-    color: '#ffffff',
+    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

@@ -45,6 +45,7 @@ const BottomSheetWrapper = ({
       ref={sheetRef}
       snapPoints={snapPoints} // Updated snap point to 50%
       index={0} // Always display at '50%'
+      backgroundStyle={{ backgroundColor: 'transparent' }} // Set transparent background
       handleComponent={() => null} // Disable bottom sheet handle
       enableHandlePanningGesture={false} // Disable handle panning
       enableContentPanningGesture={false} // Disable content panning
@@ -74,7 +75,7 @@ const BottomSheetWrapper = ({
 };
 
 const styles = {
-  content: { padding: 20, gap: 10 }
+  content: { padding: 0, gap: 10 }
 };
 
 export default BottomSheetWrapper;
