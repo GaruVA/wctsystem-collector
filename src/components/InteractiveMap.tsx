@@ -32,7 +32,7 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
       }));
 
       mapRef.current?.fitToCoordinates(formattedCoords, {
-        edgePadding: { top: 20, right: 20, bottom: 150, left: 20 },
+        edgePadding: { top: 20, right: 20, bottom: 200, left: 20 },
         animated: true
       });
     }
@@ -49,7 +49,7 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
         longitude: selectedBin.location.coordinates[0]
       };
       mapRef.current.fitToCoordinates([binCoordinate], {
-        edgePadding: { top: 20, right: 20, bottom: 150, left: 20 },
+        edgePadding: { top: 20, right: 20, bottom: 200, left: 20 },
         animated: true
       });
     }
