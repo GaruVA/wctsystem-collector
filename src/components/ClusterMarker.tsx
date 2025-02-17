@@ -20,7 +20,6 @@ interface Bin {
   };
   fillLevel: number;
   lastCollected: string;
-  status: string;
 }
 
 const ClusterMarker = ({ cluster, onPress }: { cluster: Cluster; onPress: () => void }) => {

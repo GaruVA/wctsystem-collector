@@ -23,7 +23,6 @@ interface Bin {
   };
   fillLevel: number;
   lastCollected: string;
-  status: string;
 }
 
 const HomeScreen = () => {
@@ -36,13 +35,10 @@ const HomeScreen = () => {
 
   useEffect(() => {
     const loadAreaData = async () => {
+      if (!token) return;
       try {
-        if (token) {
-          const data = await getCollectorArea(token);
-          setAreaData(data);
-        } else {
-          console.error('Token is null');
-        }
+        const data = await getCollectorArea(token);
+        setAreaData(data);
       } catch (error) {
         console.error('Failed to load area data:', error);
       }
@@ -56,13 +52,9 @@ const HomeScreen = () => {
   };
 
   const handleReportSubmit = async (issueType: string, description: string) => {
-    if (selectedBinId) {
+    if (selectedBinId && token) {
       try {
-        if (token) {
-          await reportIssue(selectedBinId, issueType, description, token);
-        } else {
-          console.error('Token is null');
-        }
+        await reportIssue(selectedBinId, issueType, description, token);
         console.log('Issue reported successfully');
       } catch (error) {
         console.error('Failed to report issue:', error);
@@ -73,24 +65,27 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
+    {areaData && (
       <InteractiveMap
         areaData={areaData}
         onBinSelect={setSelectedBin}
+        selectedBin={selectedBin} // NEW: Passing selectedBin as a prop
       />
-      <NotificationIcon />
-      <BottomSheetWrapper
-        areaData={areaData}
-        selectedBin={selectedBin}
-        onCreateRoute={() => setShowRouteModal(true)}
-        onReportIssue={handleReportIssue}
-        onCloseBin={() => setSelectedBin(null)}
-      />
-      <ReportIssueModal
-        visible={reportIssueVisible}
-        onClose={() => setReportIssueVisible(false)}
-        onReport={handleReportSubmit}
-      />
-    </View>
+    )}
+    <NotificationIcon />
+    <BottomSheetWrapper
+      areaData={areaData}
+      selectedBin={selectedBin}
+      onCreateRoute={() => setShowRouteModal(true)}
+      onReportIssue={handleReportIssue}
+      onCloseBin={() => setSelectedBin(null)}
+    />
+    <ReportIssueModal
+      visible={reportIssueVisible}
+      onClose={() => setReportIssueVisible(false)}
+      onReport={handleReportSubmit}
+    />
+  </View>
   );
 };
 

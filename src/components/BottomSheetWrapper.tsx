@@ -18,7 +18,6 @@ interface Bin {
   };
   fillLevel: number;
   lastCollected: string;
-  status: string;
 }
 
 interface BottomSheetWrapperProps {
@@ -64,8 +63,8 @@ const BottomSheetWrapper = ({
             stats={{
               totalBins: areaData?.bins?.length || 0,
               priorityBins: areaData?.bins?.filter(bin => bin.fillLevel > 70).length || 0,
-              avgFill: areaData ? areaData.bins.reduce((sum, bin) => sum + bin.fillLevel, 0) / (areaData.bins.length || 1) : 0,
-              urgentBins: areaData?.bins?.filter(bin => bin.status === 'urgent').length || 0
+              avgFill: areaData?.bins?.length ? areaData.bins.reduce((sum, bin) => sum + bin.fillLevel, 0) / areaData.bins.length : 0,
+              urgentBins: areaData?.bins?.filter(bin => bin.fillLevel >= 95).length || 0
             }} 
             onCreateRoute={onCreateRoute} 
           />

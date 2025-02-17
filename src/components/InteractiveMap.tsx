@@ -1,9 +1,7 @@
-import React, { useCallback, useRef } from 'react';
-import MapView, { Polygon } from 'react-native-maps';
-import MapClustering from 'react-native-map-clustering';
+import React, { useCallback, useEffect, useRef } from 'react';
+import MapView, { Polygon, Marker } from 'react-native-maps';
 import { StyleSheet } from 'react-native';
 import BinMarker from './BinMarker';
-import ClusterMarker from './ClusterMarker';
 import LocationMarker from './LocationMarker';
 
 interface AreaData {
@@ -21,10 +19,9 @@ interface Bin {
   };
   fillLevel: number;
   lastCollected: string;
-  status: string;
 }
 
-const InteractiveMap = ({ areaData, onBinSelect }: { areaData: AreaData | null; onBinSelect: (bin: Bin) => void }) => {
+const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: AreaData; onBinSelect: (bin: Bin) => void; selectedBin: Bin | null }) => {
   const mapRef = useRef<MapView | null>(null);
 
   const handleRegionChange = useCallback(() => {
@@ -41,13 +38,31 @@ const InteractiveMap = ({ areaData, onBinSelect }: { areaData: AreaData | null; 
     }
   }, [areaData]);
 
+  const centerOnSelectedBin = useCallback(() => {
+    if (selectedBin && mapRef.current) {
+      mapRef.current.animateCamera({
+        center: {
+          latitude: selectedBin.location.coordinates[1],
+          longitude: selectedBin.location.coordinates[0]
+        },
+        zoom: 15
+      }, { duration: 1000 });
+    }
+  }, [selectedBin]);
+
+  useEffect(() => {
+    if (selectedBin) {
+      centerOnSelectedBin();
+    }
+  }, [selectedBin, centerOnSelectedBin]);
+
   return (
     <MapView
       ref={mapRef}
       style={styles.map}
       initialRegion={{
-        latitude: areaData?.coordinates[0][1] || 0,
-        longitude: areaData?.coordinates[0][0] || 0,
+        latitude: areaData.coordinates[0][1],
+        longitude: areaData.coordinates[0][0],
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421
       }}
@@ -55,47 +70,22 @@ const InteractiveMap = ({ areaData, onBinSelect }: { areaData: AreaData | null; 
       zoomEnabled={false}
       onRegionChangeComplete={handleRegionChange}
     >
-      {areaData?.coordinates && (
-        <Polygon
-          coordinates={areaData.coordinates.map(coord => ({
-            latitude: coord[1],
-            longitude: coord[0]
-          }))}
-          strokeColor="rgba(0,0,0,0.5)"
-          fillColor="rgba(0,128,0,0.1)"
-        />
-      )}
+      <Polygon
+        coordinates={areaData.coordinates.map(coord => ({
+          latitude: coord[1],
+          longitude: coord[0]
+        }))}
+        strokeColor="rgba(0,0,0,0.5)"
+        fillColor="rgba(0,128,0,0.1)"
+      />
 
-      {areaData?.bins?.map(bin => (
+      {areaData.bins.map(bin => (
         <BinMarker
           key={bin._id}
           bin={bin}
           onPress={() => onBinSelect(bin)}
         />
       ))}
-
-      <MapClustering
-        renderCluster={(cluster) => (
-          <ClusterMarker
-            cluster={cluster}
-            onPress={() => {
-              const { latitude, longitude } = cluster.geometry.coordinates;
-              mapRef.current?.animateCamera({
-                center: { latitude, longitude },
-                zoom: 15
-              });
-            }}
-          />
-        )}
-      >
-        {areaData?.bins?.map(bin => (
-          <BinMarker
-            key={bin._id}
-            bin={bin}
-            onPress={() => onBinSelect(bin)}
-          />
-        ))}
-      </MapClustering>
 
       {/* Driver Location Marker */}
       <LocationMarker />

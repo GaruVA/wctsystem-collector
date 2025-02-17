@@ -3,9 +3,10 @@ import { Marker } from 'react-native-maps';
 import { Image } from 'react-native';
 
 const LocationMarker = () => {
+  // Example coordinates for the user's location
   const location = {
-    latitude: 37.78825,
-    longitude: -122.4324
+    latitude: 40.748,
+    longitude: -73.98
   };
 
   return (
@@ -15,7 +16,7 @@ const LocationMarker = () => {
     >
       <Image
         source={require('../assets/location.png')}
-        style={{ width: 30, height: 30 }}
+        style={{ width: 20, height: 20 }}
       />
     </Marker>
   );

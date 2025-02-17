@@ -9,7 +9,6 @@ interface Bin {
   };
   fillLevel: number;
   lastCollected: string;
-  status: string;
 }
 
 interface BinStateProps {

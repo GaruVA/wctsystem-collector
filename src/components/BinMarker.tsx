@@ -10,7 +10,6 @@ interface Bin {
   };
   fillLevel: number;
   lastCollected: string;
-  status: string;
 }
 
 const BinMarker = ({ bin, onPress }: { bin: Bin; onPress: () => void }) => {

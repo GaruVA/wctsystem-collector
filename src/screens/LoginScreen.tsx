@@ -29,12 +29,13 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     setError('');
 
     try {
-      const response = await axios.post('http://your-local-ip:5000/api/collector/login', {
+      const response = await axios.post('http://192.168.1.24:5000/api/collector/login', {
         username,
         password
       });
 
       login(response.data.token);
+      console.log('token:', response.data.token);
       navigation.replace('Home');
     } catch (err) {
       setError('Invalid credentials. Please try again.');
