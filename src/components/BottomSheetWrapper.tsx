@@ -37,14 +37,14 @@ const BottomSheetWrapper = ({
 }: BottomSheetWrapperProps) => {
   const sheetRef = useRef<BottomSheet | null>(null);
 
-  // Always use a single snap point to disable expansion
-  const snapPoints = ['25%'];
+  // Increase snap point height to 50% to bring up the button
+  const snapPoints = ['50%'];
 
   return (
     <BottomSheet
       ref={sheetRef}
-      snapPoints={snapPoints} // Fixed snap point
-      index={0} // Always display at '25%'
+      snapPoints={snapPoints} // Updated snap point to 50%
+      index={0} // Always display at '50%'
       handleComponent={() => null} // Disable bottom sheet handle
       enableHandlePanningGesture={false} // Disable handle panning
       enableContentPanningGesture={false} // Disable content panning
@@ -64,7 +64,8 @@ const BottomSheetWrapper = ({
               avgFill: areaData?.bins?.length ? areaData.bins.reduce((sum, bin) => sum + bin.fillLevel, 0) / areaData.bins.length : 0,
               urgentBins: areaData?.bins?.filter(bin => bin.fillLevel >= 95).length || 0
             }} 
-            onCreateRoute={onCreateRoute} 
+            onCreateRoute={onCreateRoute}
+            areaName={areaData?.areaName} // Pass area name here
           />
         )}
       </BottomSheetView>

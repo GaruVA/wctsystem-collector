@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Button } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 interface AreaStats {
   totalBins: number;
@@ -11,21 +11,87 @@ interface AreaStats {
 interface AreaStateProps {
   stats: AreaStats;
   onCreateRoute: () => void;
+  areaName?: string;
 }
 
-const AreaState = ({ stats, onCreateRoute }: AreaStateProps) => (
-  <View>
-    <Text style={styles.title}>Area Overview</Text>
-    <Text>Total Bins: {stats.totalBins}</Text>
-    <Text>Priority Bins: {stats.priorityBins}</Text>
-    <Text>Average Fill: {stats.avgFill.toFixed(2)}%</Text>
-    <Text>Urgent Bins: {stats.urgentBins}</Text>
-    <Button title="Create Route" onPress={onCreateRoute} />
+const AreaState = ({ stats, onCreateRoute, areaName }: AreaStateProps) => (
+  <View style={styles.container}>
+    {/* Header with area name */}
+    <View style={styles.header}>
+      <Text style={styles.headerTitle}>{areaName || 'Area Overview'}</Text>
+    </View>
+
+    {/* Details */}
+    <View style={styles.detailsContainer}>
+      <View style={styles.detailRow}>
+        <Text style={styles.label}>Total Bins</Text>
+        <Text style={styles.value}>{stats.totalBins}</Text>
+      </View>
+      <View style={styles.detailRow}>
+        <Text style={styles.label}>Priority Bins</Text>
+        <Text style={styles.value}>{stats.priorityBins}</Text>
+      </View>
+      <View style={styles.detailRow}>
+        <Text style={styles.label}>Average Fill Level</Text>
+        <Text style={styles.value}>{stats.avgFill.toFixed(0)}%</Text>
+      </View>
+      <View style={styles.detailRow}>
+        <Text style={styles.label}>Urgent Bins</Text>
+        <Text style={styles.value}>{stats.urgentBins}</Text>
+      </View>
+    </View>
+
+    {/* Prominent Create Route button */}
+    <TouchableOpacity style={styles.button} onPress={onCreateRoute}>
+      <Text style={styles.buttonText}>Create Route</Text>
+    </TouchableOpacity>
   </View>
 );
 
-const styles = {
-  title: { fontSize: 18, fontWeight: 'bold' as 'bold', marginBottom: 10 }
-};
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+  },
+  header: {
+    // Similar to BinState header but centered without extra buttons
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
+  detailsContainer: {
+    marginBottom: 20,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  value: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  button: {
+    backgroundColor: '#3B82F6',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});
 
 export default AreaState;
