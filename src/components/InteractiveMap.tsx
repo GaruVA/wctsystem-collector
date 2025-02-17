@@ -25,7 +25,7 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
   const mapRef = useRef<MapView | null>(null);
 
   const handleRegionChange = useCallback(() => {
-    if (areaData?.coordinates) {
+    if (!selectedBin && areaData?.coordinates && areaData.coordinates.length > 0) { // Only run if no bin is selected
       const formattedCoords = areaData.coordinates.map(coord => ({
         latitude: coord[1],
         longitude: coord[0]
@@ -36,7 +36,7 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
         animated: true
       });
     }
-  }, [areaData]);
+  }, [areaData, selectedBin]);
 
   useEffect(() => {
     handleRegionChange();
@@ -44,13 +44,14 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
 
   const centerOnSelectedBin = useCallback(() => {
     if (selectedBin && mapRef.current) {
-      mapRef.current.animateCamera({
-        center: {
-          latitude: selectedBin.location.coordinates[1],
-          longitude: selectedBin.location.coordinates[0]
-        },
-        zoom: 15
-      }, { duration: 1000 });
+      const binCoordinate = {
+        latitude: selectedBin.location.coordinates[1],
+        longitude: selectedBin.location.coordinates[0]
+      };
+      mapRef.current.fitToCoordinates([binCoordinate], {
+        edgePadding: { top: 20, right: 20, bottom: 150, left: 20 },
+        animated: true
+      });
     }
   }, [selectedBin]);
 
@@ -72,6 +73,7 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
       }}
       scrollEnabled={false}
       zoomEnabled={false}
+      rotateEnabled={false} // Added: disable map rotation
       onMapReady={handleRegionChange} // Added for immediate fit
       onRegionChangeComplete={handleRegionChange}
     >
