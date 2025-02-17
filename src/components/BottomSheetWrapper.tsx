@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import AreaState from './AreaState';
 import BinState from './BinState';
@@ -37,19 +37,17 @@ const BottomSheetWrapper = ({
 }: BottomSheetWrapperProps) => {
   const sheetRef = useRef<BottomSheet | null>(null);
 
-  useEffect(() => {
-    if (selectedBin) {
-      sheetRef.current?.expand();
-    } else {
-      sheetRef.current?.collapse();
-    }
-  }, [selectedBin]);
+  // Always use a single snap point to disable expansion
+  const snapPoints = ['25%'];
 
   return (
     <BottomSheet
       ref={sheetRef}
-      snapPoints={['25%', '50%']}
-      index={-1}
+      snapPoints={snapPoints} // Fixed snap point
+      index={0} // Always display at '25%'
+      handleComponent={() => null} // Disable bottom sheet handle
+      enableHandlePanningGesture={false} // Disable handle panning
+      enableContentPanningGesture={false} // Disable content panning
     >
       <BottomSheetView style={styles.content}>
         {selectedBin ? (
