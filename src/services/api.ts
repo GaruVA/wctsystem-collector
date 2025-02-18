@@ -2,8 +2,14 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 
 const API_BASE = Platform.OS === 'android'
-  ? 'http://192.168.1.24:5000/api'
+  ? 'http://10.16.130.136:5000/api'
   : 'http://localhost:5000/api';
+
+// NEW: Login API call moved here
+export const loginCollector = async (username: string, password: string) => {
+  const response = await axios.post(`${API_BASE}/collector/login`, { username, password });
+  return response.data;
+};
 
 export const getCollectorArea = async (token: string) => {
   const response = await axios.get(`${API_BASE}/collector/area`, {

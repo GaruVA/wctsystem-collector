@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Button, TextInput, Text, useTheme } from 'react-native-paper';
 import { StackNavigationProp } from '@react-navigation/stack';
-import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { loginCollector } from '../services/api'; // NEW: import the login API
 
 type RootStackParamList = {
   Login: undefined;
@@ -27,15 +27,11 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const handleLogin = async () => {
     setLoading(true);
     setError('');
-
     try {
-      const response = await axios.post('http://192.168.1.24:5000/api/collector/login', {
-        username,
-        password
-      });
-
-      login(response.data.token);
-      console.log('token:', response.data.token);
+      // NEW: Use loginCollector instead of direct axios call
+      const data = await loginCollector(username, password);
+      login(data.token);
+      console.log('token:', data.token);
       navigation.replace('Home');
     } catch (err) {
       setError('Invalid credentials. Please try again.');
