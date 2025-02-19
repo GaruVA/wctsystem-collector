@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Portal, Dialog, TextInput, Button } from 'react-native-paper';
 
 interface ReportIssueModalProps {
   visible: boolean;
@@ -7,58 +8,48 @@ interface ReportIssueModalProps {
   onReport: (issueType: string, description: string) => void;
 }
 
-const ReportIssueModal = ({ visible, onClose, onReport }: ReportIssueModalProps) => {
+const ReportIssueModal: React.FC<ReportIssueModalProps> = ({ visible, onClose, onReport }) => {
   const [issueType, setIssueType] = useState('');
   const [description, setDescription] = useState('');
 
   const handleReport = () => {
     onReport(issueType, description);
+    setIssueType('');
+    setDescription('');
     onClose();
   };
 
   return (
-    <Modal visible={visible} animationType="slide">
-      <View style={styles.modalContainer}>
-        <Text style={styles.title}>Report Issue</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Issue Type"
-          value={issueType}
-          onChangeText={setIssueType}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Description"
-          value={description}
-          onChangeText={setDescription}
-          multiline
-        />
-        <Button title="Report" onPress={handleReport} />
-        <Button title="Cancel" onPress={onClose} />
-      </View>
-    </Modal>
+    <Portal>
+      <Dialog visible={visible} onDismiss={onClose}>
+        <Dialog.Title>Report Issue</Dialog.Title>
+        <Dialog.Content>
+          <TextInput
+            label="Issue Type"
+            value={issueType}
+            onChangeText={setIssueType}
+            style={styles.input}
+          />
+          <TextInput
+            label="Description"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            style={[styles.input, { height: 80 }]}
+          />
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={onClose}>Cancel</Button>
+          <Button onPress={handleReport}>Report</Button>
+        </Dialog.Actions>
+      </Dialog>
+    </Portal>
   );
 };
 
 const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20
-  },
   input: {
-    width: '100%',
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10
+    marginVertical: 10
   }
 });
 

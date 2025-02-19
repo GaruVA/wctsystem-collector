@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import AreaState from './AreaState';
 import BinState from './BinState';
+import { View, Text, StyleSheet } from 'react-native';
 
 interface AreaData {
   areaName: string;
@@ -51,31 +52,40 @@ const BottomSheetWrapper = ({
       enableContentPanningGesture={false} // Disable content panning
     >
       <BottomSheetView style={styles.content}>
-        {selectedBin ? (
-          <BinState 
-            bin={selectedBin} 
-            onReportIssue={onReportIssue} 
-            onClose={onCloseBin} 
-          />
-        ) : (
-          <AreaState 
-            stats={{
-              totalBins: areaData?.bins?.length || 0,
-              priorityBins: areaData?.bins?.filter(bin => bin.fillLevel > 70).length || 0,
-              avgFill: areaData?.bins?.length ? areaData.bins.reduce((sum, bin) => sum + bin.fillLevel, 0) / areaData.bins.length : 0,
-              urgentBins: areaData?.bins?.filter(bin => bin.fillLevel >= 95).length || 0
-            }} 
-            onCreateRoute={onCreateRoute}
-            areaName={areaData?.areaName} // Pass area name here
-          />
-        )}
+        <View style={styles.container}>
+          {selectedBin ? (
+            <BinState 
+              bin={selectedBin} 
+              onReportIssue={onReportIssue} 
+              onClose={onCloseBin} 
+            />
+          ) : (
+            <AreaState 
+              stats={{
+                totalBins: areaData?.bins?.length || 0,
+                priorityBins: areaData?.bins?.filter(bin => bin.fillLevel > 70).length || 0,
+                avgFill: areaData?.bins?.length ? areaData.bins.reduce((sum, bin) => sum + bin.fillLevel, 0) / areaData.bins.length : 0,
+                urgentBins: areaData?.bins?.filter(bin => bin.fillLevel >= 95).length || 0
+              }} 
+              onCreateRoute={onCreateRoute}
+              areaName={areaData?.areaName} // Pass area name here
+            />
+          )}
+        </View>
       </BottomSheetView>
     </BottomSheet>
   );
 };
 
-const styles = {
+const styles = StyleSheet.create({
+  container: {
+    // ...existing styles...
+  },
+  statusText: {
+    fontSize: 14,
+    color: '#000'
+  },
   content: { padding: 0, gap: 10 }
-};
+});
 
 export default BottomSheetWrapper;
