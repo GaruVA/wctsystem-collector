@@ -18,10 +18,16 @@ interface BinStateProps {
   onClose: () => void;
 }
 
+const getHeaderColor = (fillLevel: number) => {
+  if (fillLevel > 70) return "#FF0000"; // Red
+  if (fillLevel > 30) return "#FFD700"; // Yellow
+  return "#00B050"; // Green
+};
+
 const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => (
   <View style={styles.container}>
-    {/* Header with title and close icon */}
-    <View style={styles.header}>
+    {/* Header with dynamic background color */}
+    <View style={[styles.header, { backgroundColor: getHeaderColor(bin.fillLevel) }]}>
       <Text style={styles.headerTitle}>Bin Details</Text>
       <TouchableOpacity onPress={onClose} style={styles.closeButton}>
         <Ionicons name="close" size={24} color="#fff" />
@@ -66,7 +72,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   header: {
-    backgroundColor: '#EF4444',
+    // backgroundColor is now dynamic
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

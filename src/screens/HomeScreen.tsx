@@ -6,6 +6,7 @@ import BottomSheetWrapper from '../components/BottomSheetWrapper';
 import NotificationIcon from '../components/NotificationIcon';
 import ReportIssueModal from '../components/ReportIssueModal';
 import { useAuth } from '../context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
 import { getCollectorArea, reportIssue } from '../services/api';
 
 interface AreaData {
@@ -27,6 +28,7 @@ interface Bin {
 
 const HomeScreen = () => {
   const { token } = useAuth();
+  const navigation = useNavigation<any>();
   const [areaData, setAreaData] = useState<AreaData | null>(null);
   const [selectedBin, setSelectedBin] = useState<Bin | null>(null);
   const [showRouteModal, setShowRouteModal] = useState(false);
@@ -72,7 +74,7 @@ const HomeScreen = () => {
         selectedBin={selectedBin} // NEW: Passing selectedBin as a prop
       />
     )}
-    <NotificationIcon />
+    <NotificationIcon style={styles.notificationIcon} />
     <BottomSheetWrapper
       areaData={areaData}
       selectedBin={selectedBin}
