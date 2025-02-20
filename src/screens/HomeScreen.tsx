@@ -54,13 +54,15 @@ const HomeScreen = () => {
   };
 
   const handleReportSubmit = async (issueType: string, description: string) => {
-    if (selectedBinId && token) {
+    if (selectedBinId) {
       try {
-        await reportIssue(selectedBinId, issueType, description, token);
-        console.log('Issue reported successfully');
+        await reportIssue(selectedBinId, issueType, description);
+        console.log('Issue reported successfully for bin:', selectedBinId);
       } catch (error) {
         console.error('Failed to report issue:', error);
       }
+    } else {
+      console.error('No bin id selected!');
     }
     setReportIssueVisible(false);
   };

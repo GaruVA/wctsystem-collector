@@ -18,12 +18,10 @@ export const getCollectorArea = async (token: string) => {
   return response.data;
 };
 
-export const reportIssue = async (binId: string, issueType: string, description: string, token: string) => {
-  const response = await axios.post(`${API_BASE}/bin/${binId}/report-issue`, {
+export const reportIssue = async (binId: string, issueType: string, description: string) => {
+  const response = await axios.post(`${API_BASE}/bins/${binId}/report-issue`, {
     issueType,
     description
-  }, {
-    headers: { Authorization: `Bearer ${token}` }
   });
   return response.data;
 };

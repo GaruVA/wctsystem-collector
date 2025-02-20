@@ -6,15 +6,24 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 interface ReportIssueModalProps {
   visible: boolean;
   onClose: () => void;
-  onReport: (issueType: string, description: string) => void;
+  // onReport should call reportIssue API internally (with token) and return a promise
+  onReport: (issueType: string, description: string) => Promise<void>;
 }
 
 const ReportIssueModal: React.FC<ReportIssueModalProps> = ({ visible, onClose, onReport }) => {
   const [issueType, setIssueType] = useState('');
   const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleReport = () => {
-    onReport(issueType, description);
+  const handleReport = async () => {
+    if (!issueType || !description) return;
+    setLoading(true);
+    try {
+      await onReport(issueType, description);
+    } catch (error) {
+      console.error('Report issue failed:', error);
+    }
+    setLoading(false);
     setIssueType('');
     setDescription('');
     onClose();
@@ -51,8 +60,10 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({ visible, onClose, o
         </Dialog.Content>
         <View style={styles.hr} />
         {/* Bottom button styled like BinState */}
-        <TouchableOpacity style={styles.bottomButton} onPress={handleReport}>
-          <Text style={styles.bottomButtonText}>Report</Text>
+        <TouchableOpacity style={styles.bottomButton} onPress={handleReport} disabled={loading}>
+          <Text style={styles.bottomButtonText}>
+            {loading ? 'Reporting...' : 'Report'}
+          </Text>
         </TouchableOpacity>
       </Dialog>
     </Portal>
