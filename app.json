@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "wctsystem-resident",
-    "slug": "wctsystem-resident",
+    "name": "wctsystem-collector",
+    "slug": "wctsystem-collector",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
