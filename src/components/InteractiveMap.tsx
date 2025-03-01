@@ -93,9 +93,6 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
           onPress={() => onBinSelect(bin)}
         />
       ))}
-
-      {/* Driver Location Marker */}
-      <LocationMarker />
     </MapView>
   );
 };
