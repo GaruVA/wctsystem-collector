@@ -53,6 +53,30 @@ const RouteMap = ({
   });
   console.log(`RouteMap: Converted ${routeCoordinates.length} route points for polyline`);
 
+  const fitToRoute = useCallback(() => {
+    console.log('RouteMap: Attempting to fit route on map');
+    if (mapRef.current && routeCoordinates.length > 0) {
+      try {
+        console.log(`RouteMap: Fitting map to ${routeCoordinates.length} route coordinates`);
+        
+        // Use all route points for better route fitting
+        mapRef.current.fitToCoordinates(routeCoordinates, {
+          edgePadding: { top: 50, right: 50, bottom: 250, left: 50 },
+          animated: true
+        });
+        console.log('RouteMap: Map fitted to route successfully');
+      } catch (error) {
+        console.error("RouteMap: Failed to fit map to route coordinates:", error);
+        
+        // Fallback to fitting all markers if route fitting fails
+        fitAllMarkers();
+      }
+    } else {
+      console.log('RouteMap: Route is empty or map ref is null, falling back to marker fitting');
+      fitAllMarkers();
+    }
+  }, [routeCoordinates]);
+
   const fitAllMarkers = useCallback(() => {
     console.log('RouteMap: Attempting to fit all markers on map');
     if (mapRef.current) {
@@ -69,10 +93,10 @@ const RouteMap = ({
         
         console.log(`RouteMap: Fitting map to ${coordinatesToFit.length} coordinates`);
         mapRef.current.fitToCoordinates(coordinatesToFit, {
-            edgePadding: { top: 20, right: 20, bottom: 220, left: 20 },
-            animated: true
-          });
-        console.log('RouteMap: Map fitted successfully');
+          edgePadding: { top: 50, right: 50, bottom: 250, left: 50 },
+          animated: true
+        });
+        console.log('RouteMap: Map fitted to all markers successfully');
       } catch (error) {
         console.error("RouteMap: Failed to fit map to coordinates:", error);
       }
@@ -84,8 +108,12 @@ const RouteMap = ({
   // Fit map when component mounts or when relevant data changes
   useEffect(() => {
     console.log('RouteMap: Fit map effect triggered');
-    fitAllMarkers();
-  }, [fitAllMarkers]);
+    if (routeCoordinates.length > 0) {
+      fitToRoute();
+    } else {
+      fitAllMarkers();
+    }
+  }, [fitToRoute, fitAllMarkers, routeCoordinates.length]);
 
   console.log('RouteMap: Rendering map with polyline and markers');
   return (
@@ -100,14 +128,18 @@ const RouteMap = ({
       }}
       onMapReady={() => {
         console.log('RouteMap: Map ready event triggered');
-        fitAllMarkers();
+        if (routeCoordinates.length > 0) {
+          fitToRoute();
+        } else {
+          fitAllMarkers();
+        }
       }}
     >
       {/* Current location marker */}
       <Marker 
         coordinate={currentLocation} 
         title="Your Location"
-        anchor={{ x: 0.2, y: 0.3 }} // Center of the marker
+        anchor={{ x: 0.2, y: 0.3 }}
       >
         <View style={styles.currentLocationMarker}>
           <View style={styles.currentLocationDot} />

@@ -125,5 +125,24 @@ export const getOptimizedRoute = async (
   }
 };
 
+/**
+ * Get the collector's current location from the database
+ * @param token Auth token
+ * @returns Current location as [longitude, latitude]
+ */
+export const getCollectorLocation = async (token: string): Promise<[number, number] | null> => {
+  console.log('API: Fetching collector location from database');
+  try {
+    const response = await axios.get(`${API_BASE}/collector/location`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    console.log('API: Collector location received', response.data.currentLocation);
+    return response.data.currentLocation;
+  } catch (error) {
+    console.error('API: Failed to fetch collector location:', error);
+    return null;
+  }
+};
+
 // Export types for use in other files
 export type { AreaData, Bin };

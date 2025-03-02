@@ -6,7 +6,7 @@ import NotificationIcon from '../components/NotificationIcon';
 import ReportIssueModal from '../components/ReportIssueModal';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
-import { getCollectorArea, reportIssue, getOptimizedRoute, type AreaData, type Bin } from '../services/api';
+import { getCollectorArea, reportIssue, getOptimizedRoute, getCollectorLocation, type AreaData, type Bin } from '../services/api';
 
 const HomeScreen = () => {
   console.log('HomeScreen: Component rendering');
@@ -21,7 +21,14 @@ const HomeScreen = () => {
     latitude: 40.7300,
     longitude: -73.9950
   });
+  
+  // Added to store current location from database
+  const [currentLocation, setCurrentLocation] = useState({
+    latitude: 40.748,
+    longitude: -73.98
+  });
 
+  // Load area data
   useEffect(() => {
     console.log('HomeScreen: Initial useEffect triggered, token exists:', !!token);
     const loadAreaData = async () => {
@@ -50,6 +57,44 @@ const HomeScreen = () => {
       }
     };
     loadAreaData();
+  }, [token]);
+
+  // Fetch collector location from database
+  useEffect(() => {
+    if (!token) return;
+    
+    console.log('HomeScreen: Setting up database location polling');
+    let isMounted = true;
+    
+    const fetchLocation = async () => {
+      if (!isMounted || !token) return;
+      
+      try {
+        const dbLocation = await getCollectorLocation(token);
+        
+        if (dbLocation && isMounted) {
+          console.log('HomeScreen: Got location from database:', dbLocation);
+          setCurrentLocation({
+            latitude: dbLocation[1],
+            longitude: dbLocation[0]
+          });
+        }
+      } catch (error) {
+        console.error('HomeScreen: Error fetching location from database', error);
+      }
+    };
+    
+    // Initial fetch
+    fetchLocation();
+    
+    // Set up polling interval (less frequent than in route screen)
+    const pollInterval = setInterval(fetchLocation, 10000); // Every 10 seconds
+    
+    return () => {
+      console.log('HomeScreen: Cleaning up location polling');
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
   }, [token]);
 
   const handleReportIssue = (binId: string) => {
@@ -95,33 +140,57 @@ const HomeScreen = () => {
         return;
       }
       
-      // Get driver's current location (in real app, use Geolocation)
-      const driverLocation = {
-        latitude: 40.748,
-        longitude: -73.98
-      };
-      console.log('HomeScreen: Using driver location:', driverLocation);
-      
-      console.log('HomeScreen: Requesting route optimization');
-      // Call route optimization API
-      const routeData = await getOptimizedRoute(
-        driverLocation,
-        priorityBins.map(bin => bin.location.coordinates),
-        dumpLocation
-      );
-      console.log('HomeScreen: Route optimization successful', {
-        distance: routeData.distance,
-        duration: routeData.duration,
-        routePoints: routeData.route.length
-      });
-      
-      // Navigate to route screen with the data
-      console.log('HomeScreen: Navigating to Route screen');
-      navigation.navigate('Route', { 
-        bins: priorityBins,
-        routeData: routeData,
-        areaName: areaData.areaName
-      });
+      // Check if we have valid current location coordinates
+      if (!currentLocation || typeof currentLocation.latitude !== 'number' || typeof currentLocation.longitude !== 'number') {
+        console.log('HomeScreen: Current location is invalid, using first bin as start point');
+        
+        // Use the first bin's location as starting point if current location is invalid
+        const startLocation = {
+          latitude: priorityBins[0].location.coordinates[1],
+          longitude: priorityBins[0].location.coordinates[0]
+        };
+        
+        console.log('HomeScreen: Using fallback location:', startLocation);
+        
+        // Call route optimization API with fallback location
+        const routeData = await getOptimizedRoute(
+          startLocation,
+          priorityBins.map(bin => bin.location.coordinates),
+          dumpLocation
+        );
+        
+        // Navigate to route screen with the data
+        console.log('HomeScreen: Route optimization successful, navigating to Route screen');
+        navigation.navigate('Route', { 
+          bins: priorityBins,
+          routeData: routeData,
+          areaName: areaData.areaName
+        });
+      } else {
+        // Use the current location from database
+        console.log('HomeScreen: Using current location:', currentLocation);
+        
+        // Call route optimization API
+        const routeData = await getOptimizedRoute(
+          currentLocation,
+          priorityBins.map(bin => bin.location.coordinates),
+          dumpLocation
+        );
+        
+        console.log('HomeScreen: Route optimization successful', {
+          distance: routeData.distance,
+          duration: routeData.duration,
+          routePoints: routeData.route.length
+        });
+        
+        // Navigate to route screen with the data
+        console.log('HomeScreen: Navigating to Route screen');
+        navigation.navigate('Route', { 
+          bins: priorityBins,
+          routeData: routeData,
+          areaName: areaData.areaName
+        });
+      }
     } catch (error) {
       console.error('HomeScreen: Failed to create route:', error);
       Alert.alert('Error', 'Failed to create optimized route. Please try again.');

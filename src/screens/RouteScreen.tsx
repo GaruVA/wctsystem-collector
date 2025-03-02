@@ -4,6 +4,9 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import RouteMap from '../components/RouteMap';
 import RouteDetails from '../components/RouteDetails';
 import { FAB } from 'react-native-paper';
+import * as Location from 'expo-location';
+import { useAuth } from '../context/AuthContext';
+import { getCollectorLocation } from '../services/api';
 
 interface Bin {
   _id: string;
@@ -32,6 +35,7 @@ const RouteScreen = () => {
   console.log('RouteScreen: Component rendering');
   const navigation = useNavigation();
   const route = useRoute();
+  const { token } = useAuth();
   
   // Get parameters from navigation
   const params = route.params as RouteScreenParams || {};
@@ -86,27 +90,67 @@ const RouteScreen = () => {
     }
   }, [navigation]);
 
-  // Handle location updates
+  // First, try to get location from database
   useEffect(() => {
-    console.log('RouteScreen: Setting up location simulation');
-    // In a real app, use Geolocation service
-    const locationTimer = setInterval(() => {
-      // Simulate location change - replace with actual geolocation
-      setCurrentLocation(prev => {
-        const newLocation = {
-          latitude: prev.latitude + (Math.random() - 0.5) * 0.001,
-          longitude: prev.longitude + (Math.random() - 0.5) * 0.001
-        };
-        console.log('RouteScreen: Location updated', newLocation);
-        return newLocation;
-      });
-    }, 5000);
+    if (!token) return;
 
+    const fetchDatabaseLocation = async () => {
+      console.log('RouteScreen: Attempting to fetch location from database');
+      const dbLocation = await getCollectorLocation(token);
+      
+      if (dbLocation) {
+        console.log('RouteScreen: Using location from database', dbLocation);
+        setCurrentLocation({
+          latitude: dbLocation[1],
+          longitude: dbLocation[0]
+        });
+      } else {
+        console.log('RouteScreen: No location in database, will use device GPS');
+      }
+    };
+    
+    fetchDatabaseLocation();
+  }, [token]);
+
+  // Set up polling to get location from database
+  useEffect(() => {
+    if (!token) return;
+
+    console.log('RouteScreen: Setting up database location polling');
+    
+    // Track if component is mounted
+    let isMounted = true;
+    
+    // Function to fetch location from database
+    const fetchLocation = async () => {
+      if (!isMounted || !token) return;
+      
+      console.log('RouteScreen: Fetching location from database');
+      const dbLocation = await getCollectorLocation(token);
+      
+      if (dbLocation && isMounted) {
+        console.log('RouteScreen: Updating location from database:', dbLocation);
+        setCurrentLocation({
+          latitude: dbLocation[1],
+          longitude: dbLocation[0]
+        });
+      } else if (isMounted) {
+        console.log('RouteScreen: No location in database or fetch failed');
+      }
+    };
+    
+    // Initial fetch
+    fetchLocation();
+    
+    // Set up polling interval - check database every 3 seconds for location updates
+    const locationPollInterval = setInterval(fetchLocation, 3000);
+    
     return () => {
-      console.log('RouteScreen: Cleaning up location timer');
-      clearInterval(locationTimer);
-    }
-  }, []);
+      console.log('RouteScreen: Cleaning up database polling');
+      isMounted = false;
+      clearInterval(locationPollInterval);
+    };
+  }, [token]);
 
   // Handle errors better if route data is missing
   useEffect(() => {
