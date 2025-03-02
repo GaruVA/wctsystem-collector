@@ -68,7 +68,7 @@ const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => {
 
   return (
     <View style={styles.container}>
-      {/* Header with bin ID and close button */}
+      {/* Header with bin title and close button */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Bin Details</Text>
         <TouchableOpacity 
@@ -85,22 +85,32 @@ const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => {
       {/* Bin details content */}
       <View style={styles.content}>
         <View style={styles.detailRow}>
-          <Text style={styles.label}>Bin ID:</Text>
+          <Text style={styles.label}>Bin ID</Text>
           <Text style={styles.value}>{bin._id}</Text>
         </View>
+        
         <View style={styles.detailRow}>
-          <Text style={styles.label}>Fill Level:</Text>
+          <Text style={styles.label}>Fill Level</Text>
           <View style={styles.fillLevelContainer}>
-            <View style={[styles.fillLevelBar, { width: `${bin.fillLevel}%`, backgroundColor: fillLevelColor }]} />
-            <Text style={styles.fillLevelText}>{`${bin.fillLevel}% (${fillLevelStatus})`}</Text>
+            <View 
+              style={[
+                styles.fillLevelBar, 
+                { width: `${bin.fillLevel}%`, backgroundColor: fillLevelColor }
+              ]} 
+            />
+            <Text style={styles.fillLevelText}>
+              {`${bin.fillLevel}% (${fillLevelStatus})`}
+            </Text>
           </View>
         </View>
+        
         <View style={styles.detailRow}>
-          <Text style={styles.label}>Last Collected:</Text>
+          <Text style={styles.label}>Last Collected</Text>
           <Text style={styles.value}>{formattedDate}</Text>
         </View>
+        
         <View style={styles.detailRow}>
-          <Text style={styles.label}>Location:</Text>
+          <Text style={styles.label}>Location</Text>
           <Text style={styles.value}>
             {`${bin.location.coordinates[1].toFixed(6)}, ${bin.location.coordinates[0].toFixed(6)}`}
           </Text>
@@ -115,7 +125,7 @@ const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => {
           }}
         >
           <MaterialIcons name="report-problem" size={18} color="white" />
-          <Text style={styles.reportButtonText}>Report Issue</Text>
+          <Text style={styles.buttonText}>Report Issue</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -132,40 +142,45 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
+    margin: 20,
   },
   header: {
     padding: 16,
+    paddingVertical: 18,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative', // Added to position the close button absolutely
+    position: 'relative',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   headerTitle: {
-    color: 'black',
+    color: '#111827',
     fontWeight: 'bold',
     fontSize: 18,
-    textAlign: 'center', // Ensure text is centered
+    textAlign: 'center',
   },
   closeButton: {
     position: 'absolute',
     right: 12,
-    top: 12,
+    top: 14,
     padding: 4,
   },
   content: {
-    padding: 16,
+    padding: 20,
+    paddingBottom: 24,
   },
   detailRow: {
-    marginBottom: 12,
+    marginBottom: 18,
   },
   label: {
     fontSize: 14,
     color: '#6B7280',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   value: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#111827',
   },
   fillLevelContainer: {
@@ -174,6 +189,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
+    marginTop: 4,
   },
   fillLevelBar: {
     height: '100%',
@@ -195,13 +211,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 16,
+    padding: 14,
+    borderRadius: 10,
+    marginTop: 10,
   },
-  reportButtonText: {
+  buttonText: {
     color: 'white',
     fontWeight: '600',
+    fontSize: 16,
     marginLeft: 8,
   },
 });

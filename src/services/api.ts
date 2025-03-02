@@ -65,12 +65,16 @@ export const getCollectorArea = async (token: string): Promise<AreaData> => {
   }
 };
 
-export const reportIssue = async (binId: string, issueType: string, description: string) => {
+export const reportIssue = async (binId: string, issueType: string, description: string, token: string) => {
   console.log('API: Reporting issue', { binId, issueType, description });
   try {
     const response = await axios.post(`${API_BASE}/bins/${binId}/report-issue`, {
       issueType,
       description
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
     console.log('API: Issue reported successfully');
     return response.data;
@@ -85,12 +89,14 @@ export const reportIssue = async (binId: string, issueType: string, description:
  * @param start Starting location
  * @param stops Array of bin coordinates
  * @param end Dump location
+ * @param token Auth token
  * @returns Optimized route data
  */
 export const getOptimizedRoute = async (
   start: { latitude: number; longitude: number },
   stops: Array<[number, number]>,
-  end: { latitude: number; longitude: number }
+  end: { latitude: number; longitude: number },
+  token: string
 ): Promise<{
   route: [number, number][];
   distance: string;
@@ -110,7 +116,9 @@ export const getOptimizedRoute = async (
     };
     console.log('API: Route optimization request payload:', JSON.stringify(requestData));
     
-    const response = await axios.post(`${API_BASE}/routes/optimize`, requestData);
+    const response = await axios.post(`${API_BASE}/routes/optimize`, requestData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     
     console.log('API: Route optimization response received', {
       routePointsCount: response.data.route?.length,

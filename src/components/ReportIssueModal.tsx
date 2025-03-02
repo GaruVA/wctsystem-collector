@@ -6,40 +6,58 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 interface ReportIssueModalProps {
   visible: boolean;
   onClose: () => void;
-  // onReport should call reportIssue API internally (with token) and return a promise
   onReport: (issueType: string, description: string) => Promise<void>;
 }
 
 const ReportIssueModal: React.FC<ReportIssueModalProps> = ({ visible, onClose, onReport }) => {
+  console.log('ReportIssueModal: Rendering modal, visible:', visible);
   const [issueType, setIssueType] = useState('');
   const [description, setDescription] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [descriptionError, setDescriptionError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleReport = async () => {
-    if (!issueType || !description) return;
-    setLoading(true);
-    try {
-      await onReport(issueType, description);
-    } catch (error) {
-      console.error('Report issue failed:', error);
-    }
-    setLoading(false);
+  const resetForm = () => {
+    console.log('ReportIssueModal: Resetting form');
     setIssueType('');
     setDescription('');
+    setDescriptionError(false);
+  };
+
+  const handleClose = () => {
+    console.log('ReportIssueModal: Closing modal');
+    resetForm();
     onClose();
+  };
+
+  const handleSubmit = async () => {
+    console.log('ReportIssueModal: Submitting issue', { issueType, description });
+    if (!description.trim()) {
+      console.log('ReportIssueModal: Description is empty, showing error');
+      setDescriptionError(true);
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      await onReport(issueType || 'Other issue', description);
+      resetForm();
+      onClose();
+    } catch (error) {
+      console.error('ReportIssueModal: Error submitting report', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Portal>
-      <Dialog visible={visible} onDismiss={onClose} style={styles.dialog}>
-        {/* Header with close icon and left-aligned title */}
+      <Dialog visible={visible} onDismiss={handleClose} style={styles.dialog}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Report Issue</Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
             <Ionicons name="close" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
-        {/* Horizontal separator (HR) */}
         <View style={styles.hr} />
         <Dialog.Content style={styles.content}>
           <TextInput
@@ -56,13 +74,14 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({ visible, onClose, o
             onChangeText={setDescription}
             multiline
             style={[styles.input, { height: 100 }]}
+            error={descriptionError}
           />
+          {descriptionError && <Text style={styles.errorText}>Description is required.</Text>}
         </Dialog.Content>
         <View style={styles.hr} />
-        {/* Bottom button styled like BinState */}
-        <TouchableOpacity style={styles.bottomButton} onPress={handleReport} disabled={loading}>
+        <TouchableOpacity style={styles.bottomButton} onPress={handleSubmit} disabled={isSubmitting}>
           <Text style={styles.bottomButtonText}>
-            {loading ? 'Reporting...' : 'Report'}
+            {isSubmitting ? 'Reporting...' : 'Report'}
           </Text>
         </TouchableOpacity>
       </Dialog>
@@ -83,13 +102,13 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   header: {
-    backgroundColor: '#DC2626', // Updated header color for reporting
+    backgroundColor: '#DC2626',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    marginTop: 0, // Remove white gap on top
+    marginTop: 0,
   },
   headerTitle: {
     fontSize: 20,
@@ -111,7 +130,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   bottomButton: {
-    backgroundColor: '#EF4444', // Changed bottom button color to complement header
+    backgroundColor: '#EF4444',
     paddingVertical: 14,
     margin: 16,
     borderRadius: 12,
@@ -121,6 +140,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  errorText: {
+    color: '#DC2626',
+    marginTop: 4,
   },
 });
 

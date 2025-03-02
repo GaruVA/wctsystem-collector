@@ -1,42 +1,61 @@
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Button, TextInput, Text, useTheme } from 'react-native-paper';
-import { StackNavigationProp } from '@react-navigation/stack';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
-import { loginCollector } from '../services/api'; // NEW: import the login API
+import { Button } from 'react-native-paper';
 
-type RootStackParamList = {
-  Login: undefined;
-  Home: undefined;
-};
-
-type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
-
-interface Props {
-  navigation: LoginScreenNavigationProp;
-}
-
-const LoginScreen: React.FC<Props> = ({ navigation }) => {
+const LoginScreen = () => {
+  console.log('LoginScreen: Component rendering');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { colors } = useTheme();
-  const { login } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { signIn, token, loading, error } = useAuth(); // Use signIn instead of login
+  const navigation = useNavigation<any>();
+
+  useEffect(() => {
+    console.log('LoginScreen: Token changed', !!token);
+    if (token) {
+      navigation.replace('Main'); // Navigate to Main screen, not Home
+    }
+  }, [token, navigation]);
+
+  useEffect(() => {
+    console.log('LoginScreen: Error state changed', error);
+    if (error) {
+      Alert.alert('Login Failed', error);
+    }
+  }, [error]);
 
   const handleLogin = async () => {
-    setLoading(true);
-    setError('');
+    console.log('LoginScreen: Login button pressed');
+    if (!username || !password) {
+      console.log('LoginScreen: Missing username or password');
+      Alert.alert('Error', 'Please enter both username and password');
+      return;
+    }
+
     try {
-      // NEW: Use loginCollector instead of direct axios call
-      const data = await loginCollector(username, password);
-      login(data.token);
-      console.log('token:', data.token);
-      navigation.replace('Home');
-    } catch (err) {
-      setError('Invalid credentials. Please try again.');
+      console.log('LoginScreen: Attempting login');
+      setIsSubmitting(true);
+      await signIn(username, password); // Use signIn directly with username and password
+      console.log('LoginScreen: Login successful');
+      // No need to navigate here, the useEffect will handle it when token changes
+    } catch (e) {
+      console.error('LoginScreen: Login failed', e);
+      // Error is handled by useAuth effect
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -45,7 +64,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       <Text style={styles.title}>Driver Login</Text>
       
       <TextInput
-        label="Username"
+        placeholder="Username"
         value={username}
         onChangeText={setUsername}
         style={styles.input}
@@ -53,14 +72,14 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       />
       
       <TextInput
-        label="Password"
+        placeholder="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
         style={styles.input}
       />
 
-      {error ? <Text style={{ color: colors.error }}>{error}</Text> : null}
+      {error ? <Text style={{ color: 'red' }}>{error}</Text> : null}
 
       <Button
         mode="contained"

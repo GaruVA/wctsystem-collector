@@ -15,10 +15,11 @@ interface Bin {
 interface BinMarkerProps {
   bin: Bin;
   onPress?: () => void;
+  isSelected?: boolean; // Add selected state
 }
 
-const BinMarker = ({ bin, onPress }: BinMarkerProps) => {
-  console.log(`BinMarker: Rendering bin ${bin._id} with fill level ${bin.fillLevel}%`);
+const BinMarker = ({ bin, onPress, isSelected = false }: BinMarkerProps) => {
+  console.log(`BinMarker: Rendering bin ${bin._id} with fill level ${bin.fillLevel}%${isSelected ? ' (SELECTED)' : ''}`);
   
   // Determine color based on fill level
   const getFillColor = (fillLevel: number) => {
@@ -44,8 +45,15 @@ const BinMarker = ({ bin, onPress }: BinMarkerProps) => {
       }}
     >
       <View style={styles.markerContainer}>
-        <View style={[styles.marker, { backgroundColor: fillColor }]}>
-          <View style={styles.inner} />
+        <View style={[
+          styles.marker, 
+          { backgroundColor: fillColor },
+          isSelected && styles.selectedMarker
+        ]}>
+          <View style={[
+            styles.inner,
+            isSelected && styles.selectedInner
+          ]} />
         </View>
       </View>
     </Marker>
@@ -65,11 +73,24 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'white'
   },
+  selectedMarker: {
+    width: 25,
+    height: 25,
+    borderRadius: 12.5,
+    borderWidth: 3,
+    borderColor: '#3B82F6' // Blue border for selected bins
+  },
   inner: {
     width: 10,
     height: 10,
     borderRadius: 5,
     backgroundColor: 'rgba(255,255,255,0.5)'
+  },
+  selectedInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255,255,255,0.7)'
   },
   pointer: {
     width: 0,

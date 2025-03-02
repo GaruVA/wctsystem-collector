@@ -3,8 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface RouteDetailsProps {
-  distance: string;  // e.g. "5.2 km"
-  estimatedTime: string; // e.g. "25 min"
+  distance: string;
+  estimatedTime: string;
   binsCount: number;
   onStartRoute: () => void;
   onClose?: () => void;
@@ -32,7 +32,7 @@ const RouteDetails = ({
     <View style={styles.container}>
       {/* Header with route name and close button */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Route Overview</Text>
+        <Text style={styles.headerTitle}>{routeName}</Text>
         {onClose && (
           <TouchableOpacity 
             style={styles.closeButton} 
@@ -46,138 +46,100 @@ const RouteDetails = ({
         )}
       </View>
 
-      {/* Stats in two rows */}
-      <View style={styles.statsRow}>
-        <View style={styles.statBlock}>
+      {/* Route details content */}
+      <View style={styles.content}>
+        <View style={styles.detailRow}>
           <Text style={styles.label}>Total Distance</Text>
           <Text style={styles.value}>{distance}</Text>
         </View>
-        <View style={styles.statBlock}>
+        
+        <View style={styles.detailRow}>
           <Text style={styles.label}>Estimated Time</Text>
           <Text style={styles.value}>{estimatedTime}</Text>
         </View>
-      </View>
-      
-      <View style={styles.binsSection}>
-        <View style={styles.binsHeader}>
+        
+        <View style={styles.detailRow}>
           <Text style={styles.label}>Bins to Collect</Text>
           <Text style={styles.value}>{binsCount}</Text>
         </View>
+        
+        {/* Green Start button */}
         <TouchableOpacity 
-          style={styles.expandButton} 
+          style={styles.startButton} 
           onPress={() => {
-            console.log('RouteDetails: Toggle bins expanded', !binsExpanded);
-            setBinsExpanded(!binsExpanded);
+            console.log('RouteDetails: Start route button pressed');
+            onStartRoute();
           }}
         >
-          <Text style={styles.expandButtonText}>
-            {binsExpanded ? 'Hide Bins' : 'Show Bins'}
-          </Text>
+          <Text style={styles.buttonText}>Start Route</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Green Start button */}
-      <TouchableOpacity 
-        style={styles.startButton} 
-        onPress={() => {
-          console.log('RouteDetails: Start route button pressed');
-          onStartRoute();
-        }}
-      >
-        <Text style={styles.buttonText}>Start Route</Text>
-      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: 'white',
     borderRadius: 16,
-    backgroundColor: '#fff',
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
+    margin: 16
   },
   header: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    padding: 16,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
     position: 'relative',
   },
   headerTitle: {
-    fontSize: 20,
+    color: 'black',
     fontWeight: 'bold',
-    color: '#000',
+    fontSize: 18,
     textAlign: 'center',
   },
   closeButton: {
     position: 'absolute',
     right: 12,
-    top: 10,
+    top: 12,
     padding: 4,
   },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+  content: {
+    padding: 16,
   },
-  statBlock: {
-    alignItems: 'center',
-    flex: 1,
+  detailRow: {
+    marginBottom: 16,
   },
   label: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#6B7280',
+    marginBottom: 4,
   },
   value: {
     fontSize: 18,
     fontWeight: '600',
     color: '#111827',
-    marginTop: 4,
-  },
-  binsSection: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    paddingHorizontal: 16,
-  },
-  binsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  expandButton: {
-    backgroundColor: '#F3F4F6',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    alignSelf: 'center',
-  },
-  expandButtonText: {
-    color: '#4B5563',
-    fontSize: 14,
-    fontWeight: '500',
   },
   startButton: {
-    backgroundColor: '#10B981', // Green color for start button (similar to success)
-    paddingVertical: 14,
-    margin: 16,
-    borderRadius: 12,
+    backgroundColor: '#10B981', // Green color for start button
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
-  },
+  }
 });
 
 export default RouteDetails;

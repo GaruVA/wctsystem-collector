@@ -1,34 +1,42 @@
+import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/LoginScreen';
-import HomeScreen from '../screens/HomeScreen';
 import NotificationScreen from '../screens/NotificationScreen';
-import RouteScreen from '../screens/RouteScreen';
+import { useAuth } from '../context/AuthContext';
+import MainScreen from '../screens/MainScreen';
 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
+  // Use token directly from auth context
+  const { token } = useAuth();
+
+  // Choose which navigation structure to show based on token
   return (
-    <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-      <Stack.Screen
-        name="Login"
-        component={LoginScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Notifications"
-        component={NotificationScreen}
-        options={{ headerShown: true, title: 'Notifications' }}
-      />
-      <Stack.Screen
-        name="Route"
-        component={RouteScreen}
-        options={{ headerShown: false }}
-      />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {!token ? (
+        // Auth screen when no token
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+      ) : (
+        // App screens when token exists
+        <>
+          <Stack.Screen
+            name="Main"
+            component={MainScreen}
+            options={{ headerShown: false }}
+          />
+          
+          <Stack.Screen
+            name="Notifications"
+            component={NotificationScreen}
+            options={{ headerShown: true, title: 'Notifications' }}
+          />
+        </>
+      )}
     </Stack.Navigator>
   );
 };
