@@ -68,9 +68,9 @@ const RouteMap = ({
         
         console.log(`RouteMap: Fitting map to ${coordinatesToFit.length} coordinates`);
         mapRef.current.fitToCoordinates(coordinatesToFit, {
-          edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-          animated: true
-        });
+            edgePadding: { top: 20, right: 20, bottom: 220, left: 20 },
+            animated: true
+          });
         console.log('RouteMap: Map fitted successfully');
       } catch (error) {
         console.error("RouteMap: Failed to fit map to coordinates:", error);
