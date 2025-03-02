@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 
 const API_BASE = Platform.OS === 'android'
-  ? 'https://wctsystem-backend.onrender.com/api'
+  ? 'http://192.168.1.24:5000/api'
   : 'http://localhost:5000/api';
 
 console.log('API_BASE URL:', API_BASE);
@@ -33,9 +33,9 @@ interface Bin {
 export const loginCollector = async (username: string, password: string) => {
   console.log('API: Attempting login for user:', username);
   try {
-  const response = await axios.post(`${API_BASE}/collector/login`, { username, password });
+    const response = await axios.post(`${API_BASE}/collector/login`, { username, password });
     console.log('API: Login successful, received token');
-  return response.data;
+    return response.data;
   } catch (error) {
     console.error('API: Login failed:', error);
     throw error;
@@ -50,15 +50,15 @@ export const loginCollector = async (username: string, password: string) => {
 export const getCollectorArea = async (token: string): Promise<AreaData> => {
   console.log('API: Fetching collector area data');
   try {
-  const response = await axios.get(`${API_BASE}/collector/area`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+    const response = await axios.get(`${API_BASE}/collector/area`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     console.log('API: Area data received', {
       areaName: response.data.areaName,
       binCount: response.data.bins?.length || 0,
       hasDumpLocation: !!response.data.dumpLocation
     });
-  return response.data;
+    return response.data;
   } catch (error) {
     console.error('API: Failed to fetch area data:', error);
     throw error;
@@ -68,10 +68,10 @@ export const getCollectorArea = async (token: string): Promise<AreaData> => {
 export const reportIssue = async (binId: string, issueType: string, description: string) => {
   console.log('API: Reporting issue', { binId, issueType, description });
   try {
-  const response = await axios.post(`${API_BASE}/bins/${binId}/report-issue`, {
-    issueType,
-    description
-  });
+    const response = await axios.post(`${API_BASE}/bins/${binId}/report-issue`, {
+      issueType,
+      description
+    });
     console.log('API: Issue reported successfully');
     return response.data;
   } catch (error) {
@@ -118,7 +118,7 @@ export const getOptimizedRoute = async (
       duration: response.data.duration
     });
     
-  return response.data;
+    return response.data;
   } catch (error) {
     console.error('API: Failed to get optimized route:', error);
     throw error;
@@ -126,5 +126,4 @@ export const getOptimizedRoute = async (
 };
 
 // Export types for use in other files
-export type { AreaData, Bin };
 export type { AreaData, Bin };

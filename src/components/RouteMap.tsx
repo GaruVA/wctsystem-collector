@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import MapView, { Polyline, Marker } from 'react-native-maps';
 import BinMarker from './BinMarker';
+import DumpLocation from './DumpLocation';
 
 interface Bin {
   _id: string;
@@ -106,7 +107,7 @@ const RouteMap = ({
       <Marker 
         coordinate={currentLocation} 
         title="Your Location"
-        anchor={{ x: 0.5, y: 0.5 }} // Center of the marker
+        anchor={{ x: 0.2, y: 0.3 }} // Center of the marker
       >
         <View style={styles.currentLocationMarker}>
           <View style={styles.currentLocationDot} />
@@ -114,13 +115,8 @@ const RouteMap = ({
         </View>
       </Marker>
 
-      {/* Dump location marker */}
-      <Marker 
-        coordinate={dumpLocation}
-        title="Dump Location"
-        anchor={{ x: 0.5, y: 1.0 }} // Bottom of the marker
-        pinColor="purple"
-      />
+      {/* Dump location marker - using custom component */}
+      <DumpLocation coordinate={dumpLocation} />
 
       {/* Optimized route polyline */}
       <Polyline

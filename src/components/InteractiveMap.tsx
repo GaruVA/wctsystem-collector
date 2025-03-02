@@ -31,33 +31,28 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
   const mapRef = useRef<MapView | null>(null);
 
   const handleRegionChange = useCallback(() => {
-    console.log('InteractiveMap: Region changed');
     if (!selectedBin && areaData?.coordinates && areaData.coordinates.length > 0) { // Only run if no bin is selected
-      console.log('InteractiveMap: No bin selected, fitting to area coordinates');
+      
       
       const formattedCoords = areaData.coordinates.map(coord => ({
         latitude: coord[1],
         longitude: coord[0]
       }));
 
-      console.log(`InteractiveMap: Fitting to ${formattedCoords.length} coordinates`);
       mapRef.current?.fitToCoordinates(formattedCoords, {
         edgePadding: { top: 20, right: 20, bottom: 220, left: 20 },
         animated: true
       });
     } else {
-      console.log('InteractiveMap: Bin selected, not fitting to area coordinates');
     }
   }, [areaData, selectedBin]);
 
   useEffect(() => {
-    console.log('InteractiveMap: Area data or selected bin changed, triggering region change');
     handleRegionChange();
   }, [areaData, handleRegionChange]);
 
   const centerOnSelectedBin = useCallback(() => {
     if (selectedBin && mapRef.current) {
-      console.log('InteractiveMap: Centering on selected bin', selectedBin._id);
       const binCoordinate = {
         latitude: selectedBin.location.coordinates[1],
         longitude: selectedBin.location.coordinates[0]
@@ -70,7 +65,6 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
   }, [selectedBin]);
 
   useEffect(() => {
-    console.log('InteractiveMap: Selected bin changed:', selectedBin?._id);
     if (selectedBin) {
       centerOnSelectedBin();
     }
@@ -90,11 +84,9 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
       zoomEnabled={false}
       rotateEnabled={false} // Added: disable map rotation
       onMapReady={() => {
-        console.log('InteractiveMap: Map ready');
         handleRegionChange();
       }} // Added for immediate fit
       onRegionChangeComplete={() => {
-        console.log('InteractiveMap: Region change completed');
         handleRegionChange();
       }}
     >
