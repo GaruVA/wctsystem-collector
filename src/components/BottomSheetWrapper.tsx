@@ -52,7 +52,7 @@ const BottomSheetWrapper = ({
   }, [selectedBin]);
 
   // Increase snap point height to 50% to bring up the button
-  const snapPoints = ['50%'];
+  const snapPoints = ['60%'];
 
   return (
     <BottomSheet

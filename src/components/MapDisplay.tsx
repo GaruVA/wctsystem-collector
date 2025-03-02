@@ -94,7 +94,7 @@ const MapDisplay = ({
     if (mapRef.current && routeCoordinates.length > 0) {
       try {
         mapRef.current.fitToCoordinates(routeCoordinates, {
-          edgePadding: { top: 50, right: 50, bottom: 250, left: 50 },
+          edgePadding: { top: 50, right: 50, bottom: 350, left: 50 },
           animated: true
         });
         console.log('MapDisplay: Map fitted to route successfully');
@@ -152,7 +152,7 @@ const MapDisplay = ({
       };
       
       mapRef.current.fitToCoordinates([binCoordinate], {
-        edgePadding: { top: 50, right: 50, bottom: 250, left: 50 },
+        edgePadding: { top: 50, right: 50, bottom: 350, left: 50 },
         animated: true
       });
     }
