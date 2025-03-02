@@ -68,6 +68,9 @@ const RouteScreen = () => {
   const [selectedBin, setSelectedBin] = useState<Bin | null>(null);
   const [collectedBins, setCollectedBins] = useState<Set<string>>(new Set());
 
+  // Add loading state while fetching route data
+  const [isLoading, setIsLoading] = useState(true);
+
   // Handle Android back button
   useEffect(() => {
     console.log('RouteScreen: Setting up back handler');
@@ -104,6 +107,20 @@ const RouteScreen = () => {
       clearInterval(locationTimer);
     }
   }, []);
+
+  // Handle errors better if route data is missing
+  useEffect(() => {
+    if (!routeData || !routeData.route || routeData.route.length === 0) {
+      console.error('RouteScreen: Missing or invalid route data');
+      Alert.alert(
+        'Route Error',
+        'Could not load route data. Please try again.',
+        [{ text: 'Go Back', onPress: () => navigation.goBack() }]
+      );
+    } else {
+      setIsLoading(false);
+    }
+  }, [routeData]);
 
   const handleFinishRoute = () => {
     console.log('RouteScreen: Finishing route');
