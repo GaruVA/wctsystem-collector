@@ -71,11 +71,14 @@ const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => {
       {/* Header with bin ID and close button */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Bin Details</Text>
-        <TouchableOpacity onPress={() => {
-          console.log('BinState: Close button pressed');
-          onClose();
-        }}>
-          <MaterialIcons name="close" size={24} color="white" />
+        <TouchableOpacity 
+          style={styles.closeButton}
+          onPress={() => {
+            console.log('BinState: Close button pressed');
+            onClose();
+          }}
+        >
+          <MaterialIcons name="close" size={24} color="black" />
         </TouchableOpacity>
       </View>
 
@@ -130,18 +133,24 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
-  // ...other styles...
   header: {
-    backgroundColor: '#3B82F6',
     padding: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative', // Added to position the close button absolutely
   },
   headerTitle: {
-    color: 'white',
+    color: 'black',
     fontWeight: 'bold',
     fontSize: 18,
+    textAlign: 'center', // Ensure text is centered
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    padding: 4,
   },
   content: {
     padding: 16,
