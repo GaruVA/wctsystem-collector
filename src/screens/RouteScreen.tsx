@@ -185,6 +185,23 @@ const RouteScreen = () => {
     );
   };
 
+  const handleCloseRoute = () => {
+    Alert.alert(
+      'Close Route',
+      'Are you sure you want to exit this route?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Exit', 
+          onPress: () => {
+            console.log('RouteScreen: Exiting route via close button');
+            navigation.goBack();
+          }
+        }
+      ]
+    );
+  };
+
   const handleBinSelect = (bin: Bin) => {
     console.log('RouteScreen: Bin selected', { binId: bin._id, fillLevel: bin.fillLevel });
     setSelectedBin(bin);
@@ -232,15 +249,12 @@ const RouteScreen = () => {
           estimatedTime={routeData?.duration || "0 min"}
           binsCount={bins.length}
           onStartRoute={handleFinishRoute}
+          onClose={handleCloseRoute}
           routeName={areaName}
         />
       </View>
       
-      <FAB
-        style={styles.fab}
-        icon="arrow-left"
-        onPress={() => navigation.goBack()}
-      />
+      {/* You could remove the FAB since we now have a close button */}
     </View>
   );
 };

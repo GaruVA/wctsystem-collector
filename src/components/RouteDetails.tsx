@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 interface RouteDetailsProps {
   distance: string;  // e.g. "5.2 km"
   estimatedTime: string; // e.g. "25 min"
   binsCount: number;
   onStartRoute: () => void;
+  onClose?: () => void;
   routeName?: string;
 }
 
@@ -13,7 +15,8 @@ const RouteDetails = ({
   distance, 
   estimatedTime, 
   binsCount, 
-  onStartRoute, 
+  onStartRoute,
+  onClose,
   routeName = 'Route Overview'
 }: RouteDetailsProps) => {
   console.log('RouteDetails: Component rendering', {
@@ -27,9 +30,20 @@ const RouteDetails = ({
 
   return (
     <View style={styles.container}>
-      {/* Header with route name */}
+      {/* Header with route name and close button */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{routeName}</Text>
+        <Text style={styles.headerTitle}>Route Overview</Text>
+        {onClose && (
+          <TouchableOpacity 
+            style={styles.closeButton} 
+            onPress={() => {
+              console.log('RouteDetails: Close button pressed');
+              onClose();
+            }}
+          >
+            <MaterialIcons name="close" size={24} color="black" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Stats in two rows */}
@@ -62,7 +76,7 @@ const RouteDetails = ({
         </TouchableOpacity>
       </View>
 
-      {/* Start button */}
+      {/* Green Start button */}
       <TouchableOpacity 
         style={styles.startButton} 
         onPress={() => {
@@ -78,7 +92,6 @@ const RouteDetails = ({
 
 const styles = StyleSheet.create({
   container: {
-    margin: 20,
     borderRadius: 16,
     backgroundColor: '#fff',
     overflow: 'hidden',
@@ -89,15 +102,24 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   header: {
-    backgroundColor: '#3B82F6',
     paddingVertical: 12,
     paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#000',
     textAlign: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 12,
+    top: 10,
+    padding: 4,
   },
   statsRow: {
     flexDirection: 'row',
@@ -145,7 +167,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   startButton: {
-    backgroundColor: '#EF4444', // Red for finish button
+    backgroundColor: '#10B981', // Green color for start button (similar to success)
     paddingVertical: 14,
     margin: 16,
     borderRadius: 12,
