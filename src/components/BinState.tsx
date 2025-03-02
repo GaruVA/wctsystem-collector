@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 interface Bin {
   _id: string;
@@ -18,52 +18,111 @@ interface BinStateProps {
   onClose: () => void;
 }
 
-const getHeaderColor = (fillLevel: number) => {
-  if (fillLevel > 70) return "#FF0000"; // Red
-  if (fillLevel > 30) return "#FFD700"; // Yellow
-  return "#00B050"; // Green
+const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => {
+  console.log('BinState: Rendering component for bin', bin._id);
+  
+  // Format date nicely
+  const formatDate = (dateString: string) => {
+    console.log(`BinState: Formatting date ${dateString}`);
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('BinState: Error formatting date:', error);
+      return 'Unknown date';
+    }
+  };
+
+  // Determine fill level color and status text
+  const getFillLevelColor = (fillLevel: number) => {
+    console.log(`BinState: Getting color for fill level ${fillLevel}`);
+    if (fillLevel >= 95) return '#FF3B30'; // Red
+    if (fillLevel >= 70) return '#FF9500'; // Orange
+    if (fillLevel >= 40) return '#FFCC00'; // Yellow
+    return '#34C759'; // Green
+  };
+
+  const getFillLevelStatus = (fillLevel: number) => {
+    console.log(`BinState: Getting status for fill level ${fillLevel}`);
+    if (fillLevel >= 95) return 'Critical';
+    if (fillLevel >= 70) return 'High';
+    if (fillLevel >= 40) return 'Medium';
+    return 'Low';
+  };
+
+  const fillLevelColor = getFillLevelColor(bin.fillLevel);
+  const fillLevelStatus = getFillLevelStatus(bin.fillLevel);
+  const formattedDate = formatDate(bin.lastCollected);
+
+  console.log('BinState: Bin details calculated', {
+    fillLevelStatus,
+    formattedDate,
+    coordinates: bin.location.coordinates
+  });
+
+  return (
+    <View style={styles.container}>
+      {/* Header with bin ID and close button */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Bin Details</Text>
+        <TouchableOpacity onPress={() => {
+          console.log('BinState: Close button pressed');
+          onClose();
+        }}>
+          <MaterialIcons name="close" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Bin details content */}
+      <View style={styles.content}>
+        <View style={styles.detailRow}>
+          <Text style={styles.label}>Bin ID:</Text>
+          <Text style={styles.value}>{bin._id}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Text style={styles.label}>Fill Level:</Text>
+          <View style={styles.fillLevelContainer}>
+            <View style={[styles.fillLevelBar, { width: `${bin.fillLevel}%`, backgroundColor: fillLevelColor }]} />
+            <Text style={styles.fillLevelText}>{`${bin.fillLevel}% (${fillLevelStatus})`}</Text>
+          </View>
+        </View>
+        <View style={styles.detailRow}>
+          <Text style={styles.label}>Last Collected:</Text>
+          <Text style={styles.value}>{formattedDate}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Text style={styles.label}>Location:</Text>
+          <Text style={styles.value}>
+            {`${bin.location.coordinates[1].toFixed(6)}, ${bin.location.coordinates[0].toFixed(6)}`}
+          </Text>
+        </View>
+
+        {/* Report Issue button */}
+        <TouchableOpacity 
+          style={styles.reportButton} 
+          onPress={() => {
+            console.log('BinState: Report issue button pressed for bin', bin._id);
+            onReportIssue(bin._id);
+          }}
+        >
+          <MaterialIcons name="report-problem" size={18} color="white" />
+          <Text style={styles.reportButtonText}>Report Issue</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 };
-
-const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => (
-  <View style={styles.container}>
-    {/* Header with dynamic background color */}
-    <View style={[styles.header, { backgroundColor: getHeaderColor(bin.fillLevel) }]}>
-      <Text style={styles.headerTitle}>Bin Details</Text>
-      <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-        <Ionicons name="close" size={24} color="#fff" />
-      </TouchableOpacity>
-    </View>
-
-    {/* Details */}
-    <View style={styles.detailsContainer}>
-      <View style={styles.detailRow}>
-        <Text style={styles.label}>Fill Level</Text>
-        <Text style={styles.value}>{bin.fillLevel}%</Text>
-      </View>
-      <View style={styles.detailRow}>
-        <Text style={styles.label}>Address</Text>
-        <Text style={styles.value}>{bin.location.coordinates.join(', ')}</Text>
-      </View>
-      <View style={styles.detailRow}>
-        <Text style={styles.label}>Last Pickup Date</Text>
-        <Text style={styles.value}>
-          {new Date(bin.lastCollected).toLocaleDateString()}
-        </Text>
-      </View>
-    </View>
-
-    {/* Report Issue button */}
-    <TouchableOpacity style={styles.button} onPress={() => onReportIssue(bin._id)}>
-      <Text style={styles.buttonText}>Report Issue</Text>
-    </TouchableOpacity>
-  </View>
-);
 
 const styles = StyleSheet.create({
   container: {
-    margin: 20,
+    backgroundColor: 'white',
     borderRadius: 16,
-    backgroundColor: '#fff',
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -71,54 +130,70 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
+  // ...other styles...
   header: {
-    // backgroundColor is now dynamic
+    backgroundColor: '#3B82F6',
+    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
   },
   headerTitle: {
-    fontSize: 20,
+    color: 'white',
     fontWeight: 'bold',
-    color: '#fff',
+    fontSize: 18,
   },
-  closeButton: {
-    padding: 4,
-  },
-  detailsContainer: {
+  content: {
     padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 12,
   },
   label: {
     fontSize: 14,
     color: '#6B7280',
+    marginBottom: 4,
   },
   value: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '500',
     color: '#111827',
   },
-  button: {
-    backgroundColor: '#EF4444',
-    paddingVertical: 14,
-    margin: 16,
+  fillLevelContainer: {
+    height: 24,
+    backgroundColor: '#E5E7EB',
     borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+  fillLevelBar: {
+    height: '100%',
+    position: 'absolute',
+    left: 0,
+    top: 0,
+  },
+  fillLevelText: {
+    position: 'absolute',
+    width: '100%',
     textAlign: 'center',
+    lineHeight: 24,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#111827',
+  },
+  reportButton: {
+    backgroundColor: '#EF4444',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  reportButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
 

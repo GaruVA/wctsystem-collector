@@ -12,43 +12,61 @@ interface AreaStateProps {
   stats: AreaStats;
   onCreateRoute: () => void;
   areaName?: string;
+  isLoading?: boolean;
 }
 
-const AreaState = ({ stats, onCreateRoute, areaName }: AreaStateProps) => (
-  <View style={styles.container}>
-    {/* Header with area name */}
-    <View style={styles.header}>
-      <Text style={styles.headerTitle}>{areaName || 'Area Overview'}</Text>
-    </View>
+const AreaState = ({ stats, onCreateRoute, areaName, isLoading }: AreaStateProps) => {
+  console.log('AreaState: Component rendering', {
+    totalBins: stats.totalBins,
+    priorityBins: stats.priorityBins,
+    avgFill: stats.avgFill,
+    urgentBins: stats.urgentBins,
+    areaName,
+    isLoading
+  });
+  
+  return (
+    <View style={styles.container}>
+      {/* Header with area name */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>{areaName || 'Area Overview'}</Text>
+      </View>
 
-    {/* Stats in two rows */}
-    <View style={styles.statsRow}>
-      <View style={styles.statBlock}>
-        <Text style={styles.label}>Total Bins</Text>
-        <Text style={styles.value}>{stats.totalBins}</Text>
+      {/* Stats in two rows */}
+      <View style={styles.statsRow}>
+        <View style={styles.statBlock}>
+          <Text style={styles.label}>Total Bins</Text>
+          <Text style={styles.value}>{stats.totalBins}</Text>
+        </View>
+        <View style={styles.statBlock}>
+          <Text style={styles.label}>Priority Bins</Text>
+          <Text style={styles.value}>{stats.priorityBins}</Text>
+        </View>
       </View>
-      <View style={styles.statBlock}>
-        <Text style={styles.label}>Priority Bins</Text>
-        <Text style={styles.value}>{stats.priorityBins}</Text>
+      <View style={styles.statsRow}>
+        <View style={styles.statBlock}>
+          <Text style={styles.label}>Average Fill Level</Text>
+          <Text style={styles.value}>{stats.avgFill.toFixed(0)}%</Text>
+        </View>
+        <View style={styles.statBlock}>
+          <Text style={styles.label}>Urgent Bins</Text>
+          <Text style={styles.value}>{stats.urgentBins}</Text>
+        </View>
       </View>
-    </View>
-    <View style={styles.statsRow}>
-      <View style={styles.statBlock}>
-        <Text style={styles.label}>Average Fill Level</Text>
-        <Text style={styles.value}>{stats.avgFill.toFixed(0)}%</Text>
-      </View>
-      <View style={styles.statBlock}>
-        <Text style={styles.label}>Urgent Bins</Text>
-        <Text style={styles.value}>{stats.urgentBins}</Text>
-      </View>
-    </View>
 
-    {/* Create Route button */}
-    <TouchableOpacity style={styles.button} onPress={onCreateRoute}>
-      <Text style={styles.buttonText}>Create Route</Text>
-    </TouchableOpacity>
-  </View>
-);
+      {/* Create Route button */}
+      <TouchableOpacity 
+        style={styles.button} 
+        onPress={onCreateRoute}
+        disabled={isLoading}
+      >
+        <Text style={styles.buttonText}>
+          {isLoading ? 'Creating Route...' : 'Create Route'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import AreaState from './AreaState';
 import BinState from './BinState';
@@ -21,12 +21,14 @@ interface Bin {
   lastCollected: string;
 }
 
+// Add isLoading prop
 interface BottomSheetWrapperProps {
   areaData: AreaData | null;
   selectedBin: Bin | null;
   onCreateRoute: () => void;
   onReportIssue: (binId: string) => void;
   onCloseBin: () => void;
+  isLoading?: boolean;
 }
 
 const BottomSheetWrapper = ({ 
@@ -34,9 +36,20 @@ const BottomSheetWrapper = ({
   selectedBin, 
   onCreateRoute, 
   onReportIssue, 
-  onCloseBin 
+  onCloseBin,
+  isLoading 
 }: BottomSheetWrapperProps) => {
+  console.log('BottomSheetWrapper: Component rendering', {
+    hasAreaData: !!areaData,
+    selectedBinId: selectedBin?._id || 'none',
+    isLoading
+  });
+  
   const sheetRef = useRef<BottomSheet | null>(null);
+
+  useEffect(() => {
+    console.log('BottomSheetWrapper: Selected bin changed to', selectedBin?._id || 'none');
+  }, [selectedBin]);
 
   // Increase snap point height to 50% to bring up the button
   const snapPoints = ['50%'];
@@ -50,14 +63,21 @@ const BottomSheetWrapper = ({
       handleComponent={() => null} // Disable bottom sheet handle
       enableHandlePanningGesture={false} // Disable handle panning
       enableContentPanningGesture={false} // Disable content panning
+      onChange={(index) => console.log('BottomSheetWrapper: Sheet index changed to', index)}
     >
       <BottomSheetView style={styles.content}>
         <View style={styles.container}>
           {selectedBin ? (
             <BinState 
               bin={selectedBin} 
-              onReportIssue={onReportIssue} 
-              onClose={onCloseBin} 
+              onReportIssue={(binId) => {
+                console.log('BottomSheetWrapper: Report issue requested for bin', binId);
+                onReportIssue(binId);
+              }} 
+              onClose={() => {
+                console.log('BottomSheetWrapper: Close bin requested');
+                onCloseBin();
+              }} 
             />
           ) : (
             <AreaState 
@@ -67,8 +87,12 @@ const BottomSheetWrapper = ({
                 avgFill: areaData?.bins?.length ? areaData.bins.reduce((sum, bin) => sum + bin.fillLevel, 0) / areaData.bins.length : 0,
                 urgentBins: areaData?.bins?.filter(bin => bin.fillLevel >= 95).length || 0
               }} 
-              onCreateRoute={onCreateRoute}
+              onCreateRoute={() => {
+                console.log('BottomSheetWrapper: Create route requested');
+                onCreateRoute();
+              }}
               areaName={areaData?.areaName} // Pass area name here
+              isLoading={isLoading}
             />
           )}
         </View>

@@ -22,40 +22,55 @@ interface Bin {
 }
 
 const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: AreaData; onBinSelect: (bin: Bin) => void; selectedBin: Bin | null }) => {
+  console.log('InteractiveMap: Component rendering', {
+    areaName: areaData.areaName,
+    binsCount: areaData.bins.length,
+    selectedBinId: selectedBin?._id || 'none'
+  });
+  
   const mapRef = useRef<MapView | null>(null);
 
   const handleRegionChange = useCallback(() => {
+    console.log('InteractiveMap: Region changed');
     if (!selectedBin && areaData?.coordinates && areaData.coordinates.length > 0) { // Only run if no bin is selected
+      console.log('InteractiveMap: No bin selected, fitting to area coordinates');
+      
       const formattedCoords = areaData.coordinates.map(coord => ({
         latitude: coord[1],
         longitude: coord[0]
       }));
 
+      console.log(`InteractiveMap: Fitting to ${formattedCoords.length} coordinates`);
       mapRef.current?.fitToCoordinates(formattedCoords, {
         edgePadding: { top: 20, right: 20, bottom: 220, left: 20 },
         animated: true
       });
+    } else {
+      console.log('InteractiveMap: Bin selected, not fitting to area coordinates');
     }
   }, [areaData, selectedBin]);
 
   useEffect(() => {
+    console.log('InteractiveMap: Area data or selected bin changed, triggering region change');
     handleRegionChange();
   }, [areaData, handleRegionChange]);
 
   const centerOnSelectedBin = useCallback(() => {
     if (selectedBin && mapRef.current) {
+      console.log('InteractiveMap: Centering on selected bin', selectedBin._id);
       const binCoordinate = {
         latitude: selectedBin.location.coordinates[1],
         longitude: selectedBin.location.coordinates[0]
       };
       mapRef.current.fitToCoordinates([binCoordinate], {
-        edgePadding: { top: 20, right: 20, bottom: 220, left: 20 },
+        edgePadding: { top: 20, right: 20, bottom: 330, left: 20 },
         animated: true
       });
     }
   }, [selectedBin]);
 
   useEffect(() => {
+    console.log('InteractiveMap: Selected bin changed:', selectedBin?._id);
     if (selectedBin) {
       centerOnSelectedBin();
     }
@@ -74,8 +89,14 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
       scrollEnabled={false}
       zoomEnabled={false}
       rotateEnabled={false} // Added: disable map rotation
-      onMapReady={handleRegionChange} // Added for immediate fit
-      onRegionChangeComplete={handleRegionChange}
+      onMapReady={() => {
+        console.log('InteractiveMap: Map ready');
+        handleRegionChange();
+      }} // Added for immediate fit
+      onRegionChangeComplete={() => {
+        console.log('InteractiveMap: Region change completed');
+        handleRegionChange();
+      }}
     >
       <Polygon
         coordinates={areaData.coordinates.map(coord => ({
@@ -90,7 +111,10 @@ const InteractiveMap = ({ areaData, onBinSelect, selectedBin }: { areaData: Area
         <BinMarker
           key={bin._id}
           bin={bin}
-          onPress={() => onBinSelect(bin)}
+          onPress={() => {
+            console.log('InteractiveMap: Bin marker pressed', bin._id);
+            onBinSelect(bin);
+          }}
         />
       ))}
     </MapView>
