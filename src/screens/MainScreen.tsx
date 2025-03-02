@@ -296,9 +296,10 @@ const MainScreen = () => {
 
       {/* Map is always shown, but with different props based on mode */}
       <MapDisplay
-        bins={isRouteActive ? activeBins : (areaData?.bins || [])}
+        bins={isRouteActive ? areaData?.bins || [] : (areaData?.bins || [])} // Always show all bins
         optimizedRoute={isRouteActive ? optimizedRoute : []}
         fitToRoute={isRouteActive}
+        routeBins={isRouteActive ? activeBins : []} // Pass active bins separately for highlighting
         area={!isRouteActive ? areaData || undefined : undefined}
         fitToArea={!isRouteActive}
         currentLocation={currentLocation}

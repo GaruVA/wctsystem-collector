@@ -16,10 +16,11 @@ interface BinMarkerProps {
   bin: Bin;
   onPress?: () => void;
   isSelected?: boolean; // Add selected state
+  isRouteStop?: boolean; // New prop to indicate if bin is part of route
 }
 
-const BinMarker = ({ bin, onPress, isSelected = false }: BinMarkerProps) => {
-  console.log(`BinMarker: Rendering bin ${bin._id} with fill level ${bin.fillLevel}%${isSelected ? ' (SELECTED)' : ''}`);
+const BinMarker = ({ bin, onPress, isSelected = false, isRouteStop = false }: BinMarkerProps) => {
+  console.log(`BinMarker: Rendering bin ${bin._id.substring(0,8)} with fill level ${bin.fillLevel}%${isSelected ? ' (SELECTED)' : ''}${isRouteStop ? ' (ROUTE)' : ''}`);
   
   // Determine color based on fill level
   const getFillColor = (fillLevel: number) => {
@@ -39,6 +40,7 @@ const BinMarker = ({ bin, onPress, isSelected = false }: BinMarkerProps) => {
         longitude: bin.location.coordinates[0]
       }}
       anchor={{ x: 0.2, y: 0.3 }} // This makes the bottom of the marker point to the exact location
+      opacity={isRouteStop ? 1 : 0.8} // Make non-route bins slightly transparent
       onPress={() => {
         console.log(`BinMarker: Bin ${bin._id} pressed`);
         onPress && onPress();
@@ -48,11 +50,14 @@ const BinMarker = ({ bin, onPress, isSelected = false }: BinMarkerProps) => {
         <View style={[
           styles.marker, 
           { backgroundColor: fillColor },
-          isSelected && styles.selectedMarker
+          isSelected && styles.selectedMarker,
+          isRouteStop && styles.routeMarker,
+          !isRouteStop && styles.nonRouteMarker
         ]}>
           <View style={[
             styles.inner,
-            isSelected && styles.selectedInner
+            isSelected && styles.selectedInner,
+            isRouteStop && styles.routeInner
           ]} />
         </View>
       </View>
@@ -80,6 +85,21 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#3B82F6' // Blue border for selected bins
   },
+  routeMarker: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: '#fff', // White border for route bins
+    zIndex: 3, // Ensure route bins are on top
+  },
+  nonRouteMarker: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd', // Light gray border for non-route bins
+  },
   inner: {
     width: 10,
     height: 10,
@@ -87,6 +107,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.5)'
   },
   selectedInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255,255,255,0.7)'
+  },
+  routeInner: {
     width: 12,
     height: 12,
     borderRadius: 6,

@@ -31,6 +31,7 @@ interface MapDisplayProps {
   // Route mode props (optional)
   optimizedRoute?: [number, number][]; // array of [longitude, latitude] coordinates
   fitToRoute?: boolean;
+  routeBins?: Bin[];  // New prop for bins that are part of the route
   
   // Area mode props (optional)
   area?: AreaData;
@@ -53,6 +54,7 @@ const MapDisplay = ({
   bins, 
   optimizedRoute = [], 
   fitToRoute = false,
+  routeBins = [], // Bins that are part of the active route
   area,
   fitToArea = false,
   currentLocation,
@@ -61,7 +63,8 @@ const MapDisplay = ({
   selectedBin = null // Default to null
 }: MapDisplayProps) => {
   console.log('MapDisplay: Component rendering', {
-    binsCount: bins.length,
+    allBinsCount: bins.length,
+    routeBinsCount: routeBins.length,
     hasRoute: optimizedRoute.length > 0,
     routePointsCount: optimizedRoute.length,
     hasCurrentLocation: !!currentLocation,
@@ -203,6 +206,9 @@ const MapDisplay = ({
     longitudeDelta: 0.05
   };
 
+  // Create a set of route bin IDs for quick lookup
+  const routeBinIds = new Set(routeBins.map(bin => bin._id));
+
   return (
     <MapView
       ref={mapRef}
@@ -254,6 +260,7 @@ const MapDisplay = ({
           key={bin._id}
           bin={bin}
           isSelected={selectedBin?._id === bin._id}
+          isRouteStop={routeBinIds.has(bin._id)}
           onPress={() => {
             console.log('MapDisplay: Bin marker pressed', bin._id);
             onBinSelect && onBinSelect(bin);
