@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   content: {
-    padding: 20,
+    padding: 16,
   },
   statsRow: {
     flexDirection: 'row',
@@ -124,14 +124,15 @@ const styles = StyleSheet.create({
   statBlock: {
     alignItems: 'center',
     flex: 1,
+    padding: 8,
   },
   label: {
     fontSize: 14,
     color: '#6B7280',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   value: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: '#111827',
   },

@@ -134,15 +134,15 @@ const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    margin: 20,
     borderRadius: 16,
+    backgroundColor: 'white',
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
-    margin: 16,
   },
   header: {
     padding: 16,
@@ -153,6 +153,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+    backgroundColor: '#fff',
   },
   headerTitle: {
     color: '#111827',
@@ -167,19 +168,18 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   content: {
-    padding: 20,
-    paddingBottom: 24,
+    padding: 16,
   },
   detailRow: {
-    marginBottom: 18,
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
     color: '#6B7280',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   value: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: '#111827',
   },
@@ -190,6 +190,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     marginTop: 4,
+    marginBottom: 4,
   },
   fillLevelBar: {
     height: '100%',
@@ -211,13 +212,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 14,
-    borderRadius: 10,
-    marginTop: 10,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginTop: 8,
   },
   buttonText: {
-    color: 'white',
-    fontWeight: '600',
+    color: '#fff', // Changed from 'white' to '#fff'
+    fontWeight: 'bold',
     fontSize: 16,
     marginLeft: 8,
   },
