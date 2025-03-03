@@ -69,6 +69,7 @@ const RouteDetails = ({
             onStartRoute();
           }}
         >
+          <MaterialIcons name="directions" size={20} color="#fff" />
           <Text style={styles.buttonText}>Start Route</Text>
         </TouchableOpacity>
       </View>
@@ -141,12 +142,16 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     marginTop: 16,
     borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+    marginLeft: 8,
   },
   editTip: {
     backgroundColor: '#EBF5FF',
