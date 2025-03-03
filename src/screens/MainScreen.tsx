@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, BackHandler, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Alert, BackHandler, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import MapDisplay from '../components/MapDisplay';
 import RouteDetails from '../components/RouteDetails';
@@ -44,6 +44,9 @@ const MainScreen = () => {
   const [routeData, setRouteData] = useState<RouteData | null>(null);
   const [optimizedRoute, setOptimizedRoute] = useState<[number, number][]>([]);
   const [collectedBins, setCollectedBins] = useState<Set<string>>(new Set());
+
+  // State for route recalculation loading
+  const [isRouteRecalculating, setIsRouteRecalculating] = useState(false);
 
   // Load area data
   useEffect(() => {
@@ -170,40 +173,19 @@ const MainScreen = () => {
         return;
       }
       
-      // Check if we have valid current location coordinates
-      const startLocation = currentLocation && 
-        typeof currentLocation.latitude === 'number' && 
-        typeof currentLocation.longitude === 'number' 
-          ? currentLocation
-          : {
-              latitude: priorityBins[0].location.coordinates[1],
-              longitude: priorityBins[0].location.coordinates[0]
-            };
-      
-      console.log('MainScreen: Using start location:', startLocation);
-      
-      // Call route optimization API with token explicitly passed
-      const routeDataResult = await getOptimizedRoute(
-        startLocation,
-        priorityBins.map(bin => bin.location.coordinates),
-        dumpLocation,
-        token // Pass the token explicitly
-      );
-      
-      console.log('MainScreen: Route optimization successful');
-      
-      // Set route data and activate route view
-      setRouteData(routeDataResult);
-      setOptimizedRoute(routeDataResult.route);
+      // Set route active first to switch UI mode
       setActiveBins(priorityBins);
       setActiveRouteName(areaData.areaName);
       setIsRouteActive(true);
       setCollectedBins(new Set());
       
+      // Calculate initial route
+      await recalculateRoute(priorityBins);
+      
     } catch (error: any) {
       console.error('MainScreen: Failed to create route:', error);
+      setIsRouteActive(false); // Revert to home mode on error
       
-      // More specific error messages based on error type
       if (error.response && error.response.status === 401) {
         Alert.alert('Authentication Error', 'Your session has expired. Please log out and log in again.');
       } else if (error.message === 'Network Error') {
@@ -216,26 +198,88 @@ const MainScreen = () => {
     }
   };
 
+  // Function to recalculate route when bins change
+  const recalculateRoute = async (binsForRoute: Bin[]) => {
+    if (!token || binsForRoute.length === 0) {
+      console.log('MainScreen: Cannot recalculate route - no token or bins');
+      return;
+    }
+    
+    try {
+      console.log('MainScreen: Recalculating route with', binsForRoute.length, 'bins');
+      setIsRouteRecalculating(true);
+      
+      // Get start location (current location or first bin)
+      const startLocation = currentLocation && 
+        typeof currentLocation.latitude === 'number' && 
+        typeof currentLocation.longitude === 'number' 
+          ? currentLocation
+          : {
+              latitude: binsForRoute[0].location.coordinates[1],
+              longitude: binsForRoute[0].location.coordinates[0]
+            };
+      
+      // Call route optimization API
+      const newRouteData = await getOptimizedRoute(
+        startLocation,
+        binsForRoute.map(bin => bin.location.coordinates),
+        dumpLocation,
+        token
+      );
+      
+      console.log('MainScreen: Route recalculation successful');
+      
+      // Update route data state
+      setRouteData(newRouteData);
+      setOptimizedRoute(newRouteData.route);
+      
+    } catch (error: any) {
+      console.error('MainScreen: Failed to recalculate route:', error);
+      Alert.alert('Route Error', 'Failed to recalculate the route. The previous route will be used.');
+    } finally {
+      setIsRouteRecalculating(false);
+    }
+  };
+
   // Route screen functions
   const handleBinSelect = (bin: Bin) => {
     if (isRouteActive) {
       console.log('MainScreen: Bin selected during active route:', bin._id);
-      Alert.alert(
-        'Collect Bin',
-        `Would you like to mark this bin (${bin._id.substring(0, 8)}...) as collected?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Collect', 
-            onPress: () => {
-              console.log('MainScreen: Marking bin as collected:', bin._id);
-              setCollectedBins(prev => new Set([...prev, bin._id]));
-              Alert.alert('Bin Collected', 'The bin has been marked as collected.');
-            }
-          }
-        ]
-      );
+      
+      // Check if this bin is already part of the route
+      const binIndex = activeBins.findIndex(b => b._id === bin._id);
+      let newActiveBins: Bin[] = [];
+      
+      if (binIndex >= 0) {
+        // Bin is already in route - remove it
+        console.log('MainScreen: Removing bin from route:', bin._id);
+        newActiveBins = [...activeBins];
+        newActiveBins.splice(binIndex, 1);
+      } else {
+        // Bin is not in route - add it
+        console.log('MainScreen: Adding bin to route:', bin._id);
+        newActiveBins = [...activeBins, bin];
+      }
+      
+      // Update active bins state
+      setActiveBins(newActiveBins);
+      
+      // Recalculate the route
+      if (newActiveBins.length > 0) {
+        recalculateRoute(newActiveBins);
+      } else {
+        // No bins left in route - show alert
+        Alert.alert(
+          'Empty Route',
+          'Your route has no bins. Do you want to exit route mode?',
+          [
+            { text: 'Stay', style: 'cancel' },
+            { text: 'Exit Route', onPress: handleExitRoute }
+          ]
+        );
+      }
     } else {
+      // Home mode bin selection
       console.log('MainScreen: Selected bin in home view:', bin._id);
       setSelectedBin(bin);
     }
@@ -263,6 +307,7 @@ const MainScreen = () => {
     setOptimizedRoute([]);
     setActiveBins([]);
     setCollectedBins(new Set());
+    setSelectedBin(null); // Clear any selected bin when exiting
   };
 
   const handleLogout = () => {
@@ -296,10 +341,10 @@ const MainScreen = () => {
 
       {/* Map is always shown, but with different props based on mode */}
       <MapDisplay
-        bins={isRouteActive ? areaData?.bins || [] : (areaData?.bins || [])} // Always show all bins
+        bins={areaData?.bins || []} // Always show all bins
         optimizedRoute={isRouteActive ? optimizedRoute : []}
         fitToRoute={isRouteActive}
-        routeBins={isRouteActive ? activeBins : []} // Pass active bins separately for highlighting
+        routeBins={activeBins}
         area={!isRouteActive ? areaData || undefined : undefined}
         fitToArea={!isRouteActive}
         currentLocation={currentLocation}
@@ -307,6 +352,13 @@ const MainScreen = () => {
         onBinSelect={handleBinSelect}
         selectedBin={isRouteActive ? null : selectedBin}
       />
+
+      {/* Loading indicator for route recalculation */}
+      {isRouteRecalculating && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#3B82F6" />
+        </View>
+      )}
 
       {!isRouteActive ? (
         // Home view components
@@ -337,7 +389,7 @@ const MainScreen = () => {
             binsCount={activeBins.length}
             onStartRoute={handleFinishRoute}
             onClose={handleExitRoute}
-            routeName={activeRouteName}
+            routeName={`${activeRouteName} (${activeBins.length} Bins)`}
           />
         </View>
       )}
@@ -375,7 +427,17 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: 'transparent',
-  }
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
 
 export default MainScreen;

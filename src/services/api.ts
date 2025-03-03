@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 
 const API_BASE = Platform.OS === 'android'
-  ? 'http://192.168.1.24:5000/api'
+  ? 'https://wctsystem-backend.onrender.com/api'
   : 'http://localhost:5000/api';
 
 console.log('API_BASE URL:', API_BASE);
