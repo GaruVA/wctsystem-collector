@@ -85,11 +85,6 @@ const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => {
       {/* Bin details content */}
       <View style={styles.content}>
         <View style={styles.detailRow}>
-          <Text style={styles.label}>Bin ID</Text>
-          <Text style={styles.value}>{bin._id}</Text>
-        </View>
-        
-        <View style={styles.detailRow}>
           <Text style={styles.label}>Fill Level</Text>
           <View style={styles.fillLevelContainer}>
             <View 

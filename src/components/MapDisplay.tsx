@@ -155,7 +155,7 @@ const MapDisplay = ({
       };
       
       mapRef.current.fitToCoordinates([binCoordinate], {
-        edgePadding: { top: 50, right: 50, bottom: 360, left: 50 },
+        edgePadding: { top: 50, right: 50, bottom: 320, left: 50 },
         animated: true
       });
     }
