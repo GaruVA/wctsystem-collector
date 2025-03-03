@@ -25,13 +25,11 @@ const RouteDetails = ({
     binsCount,
     routeName
   });
-  
-  const [binsExpanded, setBinsExpanded] = useState(false);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{routeName}</Text>
+        <Text style={styles.headerTitle}>Route Overview</Text>
         {onClose && (
           <TouchableOpacity 
             style={styles.closeButton} 
@@ -45,51 +43,35 @@ const RouteDetails = ({
         )}
       </View>
 
-      <View style={styles.statsRow}>
-        <View style={styles.statBlock}>
-          <Text style={styles.label}>Total Distance</Text>
-          <Text style={styles.value}>{distance}</Text>
+      <View style={styles.content}>
+        <View style={styles.statsRow}>
+          <View style={styles.statBlock}>
+            <Text style={styles.label}>Total Distance</Text>
+            <Text style={styles.value}>{distance}</Text>
+          </View>
+          <View style={styles.statBlock}>
+            <Text style={styles.label}>Estimated Time</Text>
+            <Text style={styles.value}>{estimatedTime}</Text>
+          </View>
         </View>
-        <View style={styles.statBlock}>
-          <Text style={styles.label}>Estimated Time</Text>
-          <Text style={styles.value}>{estimatedTime}</Text>
+
+        <View style={styles.editTip}>
+          <MaterialIcons name="info-outline" size={16} color="#3B82F6" />
+          <Text style={styles.tipText}>
+            Tap bins on map to add or remove them from route
+          </Text>
         </View>
-      </View>
-      
-      <View style={styles.binsSection}>
-        <View style={styles.binsHeader}>
-          <Text style={styles.label}>Bins to Collect</Text>
-          <Text style={styles.value}>{binsCount}</Text>
-        </View>
+
         <TouchableOpacity 
-          style={styles.expandButton} 
+          style={styles.startButton} 
           onPress={() => {
-            console.log('RouteDetails: Toggle bins expanded', !binsExpanded);
-            setBinsExpanded(!binsExpanded);
+            console.log('RouteDetails: Start route button pressed');
+            onStartRoute();
           }}
         >
-          <Text style={styles.expandButtonText}>
-            {binsExpanded ? 'Hide Bins' : 'Show Bins'}
-          </Text>
+          <Text style={styles.buttonText}>Start Route</Text>
         </TouchableOpacity>
       </View>
-
-      <View style={styles.editTip}>
-        <MaterialIcons name="info-outline" size={16} color="#3B82F6" />
-        <Text style={styles.tipText}>
-          Tap bins on map to add or remove them from route
-        </Text>
-      </View>
-
-      <TouchableOpacity 
-        style={styles.startButton} 
-        onPress={() => {
-          console.log('RouteDetails: Start route button pressed');
-          onStartRoute();
-        }}
-      >
-        <Text style={styles.buttonText}>Start Route</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -107,21 +89,30 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   header: {
-    backgroundColor: '#3B82F6',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    padding: 16,
+    paddingVertical: 18,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    backgroundColor: '#fff',
   },
   headerTitle: {
-    fontSize: 20,
+    color: '#111827',
     fontWeight: 'bold',
-    color: '#fff',
+    fontSize: 18,
     textAlign: 'center',
   },
   closeButton: {
-    padding: 8,
+    position: 'absolute',
+    right: 12,
+    top: 14,
+    padding: 4,
+  },
+  content: {
+    padding: 20,
   },
   statsRow: {
     flexDirection: 'row',
@@ -135,43 +126,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   label: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#6B7280',
+    marginBottom: 6,
   },
   value: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: '#111827',
-    marginTop: 4,
-  },
-  binsSection: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    paddingHorizontal: 16,
-  },
-  binsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  expandButton: {
-    backgroundColor: '#F3F4F6',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    alignSelf: 'center',
-  },
-  expandButtonText: {
-    color: '#4B5563',
-    fontSize: 14,
-    fontWeight: '500',
   },
   startButton: {
-    backgroundColor: '#EF4444', // Red for finish button
+    backgroundColor: '#10B981', // Green like in AreaState
     paddingVertical: 14,
-    margin: 16,
+    marginTop: 16,
     borderRadius: 12,
   },
   buttonText: {
@@ -186,7 +153,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginVertical: 16,
   },
   tipText: {
     color: '#3B82F6',
