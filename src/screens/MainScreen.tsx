@@ -50,9 +50,9 @@ const MainScreen = () => {
   const [isRouteRecalculating, setIsRouteRecalculating] = useState(false);
 
   // Define heights for different states
-  const homeDetailsHeight = 440; // Example height for home view
-  const routeDetailsHeight = 365; // Example height for route view
-  const binDetailsHeight = 405; // Example height for bin details view
+  const homeDetailsHeight = 408; // Example height for home view
+  const routeDetailsHeight = 333; // Example height for route view
+  const binDetailsHeight = 373; // Example height for bin details view
 
   // Function to get the current details container height
   const getDetailsHeight = () => {
@@ -455,9 +455,6 @@ const styles = StyleSheet.create({
   },
   detailsContainer: {
     backgroundColor: 'white',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
