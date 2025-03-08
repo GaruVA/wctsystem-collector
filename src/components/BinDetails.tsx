@@ -10,15 +10,16 @@ interface Bin {
   };
   fillLevel: number;
   lastCollected: string;
+  address?: string; // Add address field
 }
 
-interface BinStateProps {
+interface BinDetailsProps {
   bin: Bin;
   onReportIssue: (binId: string) => void;
   onClose: () => void;
 }
 
-const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => {
+const BinDetails = ({ bin, onReportIssue, onClose }: BinDetailsProps) => {
   console.log('BinState: Rendering component for bin', bin._id);
   
   // Format date nicely
@@ -103,12 +104,10 @@ const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => {
           <Text style={styles.label}>Last Collected</Text>
           <Text style={styles.value}>{formattedDate}</Text>
         </View>
-        
+
         <View style={styles.detailRow}>
-          <Text style={styles.label}>Location</Text>
-          <Text style={styles.value}>
-            {`${bin.location.coordinates[1].toFixed(6)}, ${bin.location.coordinates[0].toFixed(6)}`}
-          </Text>
+          <Text style={styles.label}>Address</Text>
+          <Text style={styles.value}>{bin.address || 'Loading address...'}</Text>
         </View>
 
         {/* Report Issue button */}
@@ -129,15 +128,7 @@ const BinState = ({ bin, onReportIssue, onClose }: BinStateProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    margin: 20,
-    borderRadius: 16,
-    backgroundColor: 'white',
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    flex: 1,
   },
   header: {
     padding: 16,
@@ -219,4 +210,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BinState;
+export default BinDetails;

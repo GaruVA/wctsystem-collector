@@ -27,6 +27,7 @@ interface Bin {
   };
   fillLevel: number;
   lastCollected: string;
+  address?: string; // Add address field
 }
 
 // Login API call
@@ -53,12 +54,16 @@ export const getCollectorArea = async (token: string): Promise<AreaData> => {
     const response = await axios.get(`${API_BASE}/collector/area`, {
       headers: { Authorization: `Bearer ${token}` }
     });
+
+    const areaData = response.data;
+
     console.log('API: Area data received', {
-      areaName: response.data.areaName,
-      binCount: response.data.bins?.length || 0,
-      hasDumpLocation: !!response.data.dumpLocation
+      areaName: areaData.areaName,
+      binCount: areaData.bins?.length || 0,
+      hasDumpLocation: !!areaData.dumpLocation
     });
-    return response.data;
+
+    return areaData;
   } catch (error) {
     console.error('API: Failed to fetch area data:', error);
     throw error;

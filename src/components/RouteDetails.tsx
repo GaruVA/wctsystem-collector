@@ -79,15 +79,7 @@ const RouteDetails = ({
 
 const styles = StyleSheet.create({
   container: {
-    margin: 20,
-    borderRadius: 16,
-    backgroundColor: '#fff',
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    flex: 1,
   },
   header: {
     padding: 16,

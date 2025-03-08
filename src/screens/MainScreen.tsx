@@ -3,7 +3,8 @@ import { View, StyleSheet, Alert, BackHandler, TouchableOpacity, ActivityIndicat
 import { MaterialIcons } from '@expo/vector-icons';
 import MapDisplay from '../components/MapDisplay';
 import RouteDetails from '../components/RouteDetails';
-import BottomSheetWrapper from '../components/BottomSheetWrapper';
+import AreaDetails from '../components/AreaDetails';
+import BinDetails from '../components/BinDetails';
 import NotificationIcon from '../components/NotificationIcon';
 import ReportIssueModal from '../components/ReportIssueModal';
 import { useAuth } from '../context/AuthContext';
@@ -47,6 +48,18 @@ const MainScreen = () => {
 
   // State for route recalculation loading
   const [isRouteRecalculating, setIsRouteRecalculating] = useState(false);
+
+  // Define heights for different states
+  const homeDetailsHeight = 440; // Example height for home view
+  const routeDetailsHeight = 365; // Example height for route view
+  const binDetailsHeight = 405; // Example height for bin details view
+
+  // Function to get the current details container height
+  const getDetailsHeight = () => {
+    if (isRouteActive) return routeDetailsHeight;
+    if (selectedBin) return binDetailsHeight;
+    return homeDetailsHeight;
+  };
 
   // Load area data
   useEffect(() => {
@@ -339,19 +352,23 @@ const MainScreen = () => {
         <MaterialIcons name="logout" size={24} color="#333" />
       </TouchableOpacity>
 
-      {/* Map is always shown, but with different props based on mode */}
-      <MapDisplay
-        bins={areaData?.bins || []} // Always show all bins
-        optimizedRoute={isRouteActive ? optimizedRoute : []}
-        fitToRoute={isRouteActive}
-        routeBins={activeBins}
-        area={!isRouteActive ? areaData || undefined : undefined}
-        fitToArea={!isRouteActive}
-        currentLocation={currentLocation}
-        dumpLocation={dumpLocation}
-        onBinSelect={handleBinSelect}
-        selectedBin={isRouteActive ? null : selectedBin}
-      />
+      {/* Map container */}
+      <View style={[styles.mapContainer, { flex: 1 }]}>
+        <MapDisplay
+          bins={areaData?.bins || []} // Always show all bins
+          optimizedRoute={isRouteActive ? optimizedRoute : []}
+          fitToRoute={isRouteActive}
+          routeBins={activeBins}
+          area={!isRouteActive ? areaData || undefined : undefined}
+          fitToArea={!isRouteActive}
+          currentLocation={currentLocation}
+          dumpLocation={dumpLocation}
+          onBinSelect={handleBinSelect}
+          selectedBin={isRouteActive ? null : selectedBin}
+        />
+      </View>
+
+      <NotificationIcon style={styles.notificationIcon} />
 
       {/* Loading indicator for route recalculation */}
       {isRouteRecalculating && (
@@ -360,29 +377,41 @@ const MainScreen = () => {
         </View>
       )}
 
-      {!isRouteActive ? (
-        // Home view components
-        <>
-          <NotificationIcon style={styles.notificationIcon} />
-          
-          <BottomSheetWrapper
-            areaData={areaData}
-            selectedBin={selectedBin}
-            onCreateRoute={createOptimizedRoute}
-            onReportIssue={handleReportIssue}
-            onCloseBin={() => setSelectedBin(null)}
-            isLoading={isLoading}
-          />
-          
-          <ReportIssueModal
-            visible={reportIssueVisible}
-            onClose={() => setReportIssueVisible(false)}
-            onReport={handleReportSubmit}
-          />
-        </>
-      ) : (
-        // Route view components
-        <View style={styles.detailsContainer}>
+      {/* Details container */}
+      <View style={[
+        styles.detailsContainer, 
+        { height: getDetailsHeight() }
+      ]}>
+        {!isRouteActive ? (
+          // Home view components
+          <>
+            {selectedBin ? (
+              <BinDetails 
+                bin={selectedBin} 
+                onReportIssue={handleReportIssue}
+                onClose={() => setSelectedBin(null)}
+              />
+            ) : (
+              <AreaDetails 
+                stats={{
+                  totalBins: areaData?.bins?.length || 0,
+                  priorityBins: areaData?.bins?.filter(bin => bin.fillLevel > 70).length || 0,
+                  avgFill: areaData?.bins?.length ? areaData.bins.reduce((sum, bin) => sum + bin.fillLevel, 0) / areaData.bins.length : 0,
+                  urgentBins: areaData?.bins?.filter(bin => bin.fillLevel >= 95).length || 0
+                }} 
+                onCreateRoute={createOptimizedRoute}
+                areaName={areaData?.areaName}
+                isLoading={isLoading}
+              />
+            )}
+            <ReportIssueModal
+              visible={reportIssueVisible}
+              onClose={() => setReportIssueVisible(false)}
+              onReport={handleReportSubmit}
+            />
+          </>
+        ) : (
+          // Route view components
           <RouteDetails
             distance={routeData?.distance || "0 km"}
             estimatedTime={routeData?.duration || "0 min"}
@@ -391,14 +420,17 @@ const MainScreen = () => {
             onClose={handleExitRoute}
             routeName={`${activeRouteName} (${activeBins.length} Bins)`}
           />
-        </View>
-      )}
+        )}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  mapContainer: {
     flex: 1,
   },
   notificationIcon: {
@@ -422,11 +454,15 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   detailsContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'transparent',
+    backgroundColor: 'white',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   loadingOverlay: {
     position: 'absolute',

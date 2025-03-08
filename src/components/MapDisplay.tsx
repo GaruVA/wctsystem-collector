@@ -97,7 +97,7 @@ const MapDisplay = ({
     if (mapRef.current && routeCoordinates.length > 0) {
       try {
         mapRef.current.fitToCoordinates(routeCoordinates, {
-          edgePadding: { top: 50, right: 50, bottom: 320, left: 50 },
+          edgePadding: { top: 50, right: 50, bottom: 30, left: 50 },
           animated: true
         });
         console.log('MapDisplay: Map fitted to route successfully');
@@ -113,7 +113,7 @@ const MapDisplay = ({
     if (mapRef.current && areaCoordinates.length > 0) {
       try {
         mapRef.current.fitToCoordinates(areaCoordinates, {
-          edgePadding: { top: 50, right: 50, bottom: 360, left: 50 },
+          edgePadding: { top: 50, right: 50, bottom: 30, left: 50 },
           animated: true
         });
         console.log('MapDisplay: Map fitted to area successfully');
@@ -135,7 +135,7 @@ const MapDisplay = ({
         }));
         
         mapRef.current.fitToCoordinates(binCoordinates, {
-          edgePadding: { top: 50, right: 50, bottom: 250, left: 50 },
+          edgePadding: { top: 50, right: 50, bottom: 30, left: 50 },
           animated: true
         });
         console.log('MapDisplay: Map fitted to bins successfully');
@@ -155,7 +155,7 @@ const MapDisplay = ({
       };
       
       mapRef.current.fitToCoordinates([binCoordinate], {
-        edgePadding: { top: 50, right: 50, bottom: 320, left: 50 },
+        edgePadding: { top: 50, right: 50, bottom: 30, left: 50 },
         animated: true
       });
     }
@@ -169,8 +169,10 @@ const MapDisplay = ({
       fitToRoutePoints();
     } else if (fitToArea && areaCoordinates.length > 0) {
       fitToAreaBounds();
+      
     } else {
       fitToBins();
+      
     }
   }, [
     selectedBin, 

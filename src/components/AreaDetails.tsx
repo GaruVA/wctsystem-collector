@@ -13,9 +13,10 @@ interface AreaStateProps {
   stats: AreaStats;
   onCreateRoute: () => void;
   areaName?: string;
+  isLoading?: boolean; // Add isLoading prop
 }
 
-const AreaState = ({ stats, onCreateRoute, areaName }: AreaStateProps) => (
+const AreaState = ({ stats, onCreateRoute, areaName, isLoading }: AreaStateProps) => (
   <View style={styles.container}>
     {/* Header with area name */}
     <View style={styles.header}>
@@ -63,9 +64,9 @@ const AreaState = ({ stats, onCreateRoute, areaName }: AreaStateProps) => (
       </View>
 
       {/* Create Route button */}
-      <TouchableOpacity style={styles.button} onPress={onCreateRoute}>
+      <TouchableOpacity style={styles.button} onPress={onCreateRoute} disabled={isLoading}>
         <MaterialIcons name="route" size={20} color="#fff" />
-        <Text style={styles.buttonText}>Create Route</Text>
+        <Text style={styles.buttonText}>{isLoading ? 'Creating Route...' : 'Create Route'}</Text>
       </TouchableOpacity>
     </View>
   </View>
@@ -80,15 +81,7 @@ const getFillLevelColor = (fillLevel: number) => {
 
 const styles = StyleSheet.create({
   container: {
-    margin: 20,
-    borderRadius: 16,
-    backgroundColor: '#fff',
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    flex: 1,
   },
   header: {
     padding: 16,
@@ -96,6 +89,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
     backgroundColor: '#fff',
