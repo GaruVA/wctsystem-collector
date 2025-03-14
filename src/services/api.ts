@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 
 const API_BASE = Platform.OS === 'android'
-  ? 'https://wctsystem-backend.onrender.com/api'
+  ? 'http://10.249.68.197:5000/api'
   : 'http://localhost:5000/api';
 
 console.log('API_BASE URL:', API_BASE);
@@ -90,25 +90,18 @@ export const reportIssue = async (binId: string, issueType: string, description:
 };
 
 /**
- * Get an optimized route for bin collection
- * @param start Starting location
- * @param stops Array of bin coordinates
- * @param end Dump location
- * @param token Auth token
- * @returns Optimized route data
+ * Get optimized bin order
  */
-export const getOptimizedRoute = async (
+export const optimizeBinOrder = async (
   start: { latitude: number; longitude: number },
   stops: Array<[number, number]>,
   end: { latitude: number; longitude: number },
   token: string
 ): Promise<{
-  route: [number, number][];
-  distance: string;
-  duration: string;
-  stops_sequence?: number[];
+  optimizedStops: [number, number][];
+  stops_sequence: number[];
 }> => {
-  console.log('API: Requesting route optimization', {
+  console.log('API: Requesting bin order optimization', {
     startPoint: start,
     stopsCount: stops.length,
     endPoint: end
@@ -119,13 +112,61 @@ export const getOptimizedRoute = async (
       stops: stops,
       end: [end.longitude, end.latitude]
     };
-    console.log('API: Route optimization request payload:', JSON.stringify(requestData));
     
-    const response = await axios.post(`${API_BASE}/routes/optimize`, requestData, {
+    const response = await axios.post(`${API_BASE}/routes/optimize-bin-order`, requestData, {
       headers: { Authorization: `Bearer ${token}` }
     });
     
-    console.log('API: Route optimization response received', {
+    console.log('API: Bin order optimization received', {
+      optimizedStopsCount: response.data.optimizedStops?.length,
+      sequence: response.data.stops_sequence
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('API: Failed to get optimized bin order:', error);
+    throw error;
+  }
+};
+
+/**
+ * Generate route polyline using optimized waypoints
+ */
+export const generateRoutePolyline = async (
+  waypoints: Array<[number, number]>,
+  stops_sequence: number[],
+  token: string
+): Promise<{
+  route: [number, number][];
+  distance: string;
+  duration: string;
+  stops_sequence: number[];
+  steps?: Array<{
+    instruction?: string;
+    distance?: string;
+    duration?: number;
+    name?: string;
+    maneuver?: {
+      type: string;
+      modifier?: string;
+    };
+  }>;
+}> => {
+  console.log('API: Requesting route polyline generation', {
+    waypointsCount: waypoints.length,
+    sequence: stops_sequence
+  });
+  try {
+    const requestData = {
+      waypoints,
+      stops_sequence
+    };
+    
+    const response = await axios.post(`${API_BASE}/routes/generate-polyline`, requestData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    console.log('API: Route polyline generated', {
       routePointsCount: response.data.route?.length,
       distance: response.data.distance,
       duration: response.data.duration
@@ -133,15 +174,13 @@ export const getOptimizedRoute = async (
     
     return response.data;
   } catch (error) {
-    console.error('API: Failed to get optimized route:', error);
+    console.error('API: Failed to generate route polyline:', error);
     throw error;
   }
 };
 
 /**
  * Get the collector's current location from the database
- * @param token Auth token
- * @returns Current location as [longitude, latitude]
  */
 export const getCollectorLocation = async (token: string): Promise<[number, number] | null> => {
   console.log('API: Fetching collector location from database');

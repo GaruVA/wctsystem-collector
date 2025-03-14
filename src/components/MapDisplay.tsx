@@ -33,6 +33,10 @@ interface MapDisplayProps {
   fitToRoute?: boolean;
   routeBins?: Bin[];  // New prop for bins that are part of the route
   
+  // Navigation mode props (new)
+  currentSegment?: [number, number][]; // Current segment being navigated
+  fitToCurrentSegment?: boolean; // Whether to fit the map to the current segment
+  
   // Area mode props (optional)
   area?: AreaData;
   fitToArea?: boolean;
@@ -55,6 +59,8 @@ const MapDisplay = ({
   optimizedRoute = [], 
   fitToRoute = false,
   routeBins = [], // Bins that are part of the active route
+  currentSegment = [], // Current navigation segment
+  fitToCurrentSegment = false, // Whether to focus on the current segment
   area,
   fitToArea = false,
   currentLocation,
@@ -67,9 +73,12 @@ const MapDisplay = ({
     routeBinsCount: routeBins.length,
     hasRoute: optimizedRoute.length > 0,
     routePointsCount: optimizedRoute.length,
+    hasCurrentSegment: currentSegment.length > 0,
+    currentSegmentPoints: currentSegment.length,
     hasCurrentLocation: !!currentLocation,
     hasDumpLocation: !!dumpLocation,
     fitToRoute,
+    fitToCurrentSegment,
     fitToArea,
     selectedBinId: selectedBin?._id || 'none'
   });
@@ -78,6 +87,14 @@ const MapDisplay = ({
 
   // Format route coordinates for the Polyline component (if we have a route)
   const routeCoordinates = optimizedRoute.map(coord => {
+    return {
+      latitude: coord[1],
+      longitude: coord[0]
+    };
+  });
+  
+  // Format current segment coordinates for the active navigation segment
+  const currentSegmentCoordinates = currentSegment.map(coord => {
     return {
       latitude: coord[1],
       longitude: coord[0]
@@ -107,6 +124,29 @@ const MapDisplay = ({
       }
     }
   }, [routeCoordinates]);
+
+  // Add function to fit to current navigation segment
+  const fitToCurrentSegmentPoints = useCallback(() => {
+    console.log('MapDisplay: Fitting to current navigation segment');
+    if (mapRef.current && currentSegmentCoordinates.length > 0) {
+      try {
+        // Include current location in the viewable area if available
+        const coordinatesToFit = [...currentSegmentCoordinates];
+        if (currentLocation) {
+          coordinatesToFit.push(currentLocation);
+        }
+        
+        mapRef.current.fitToCoordinates(coordinatesToFit, {
+          edgePadding: { top: 100, right: 100, bottom: 100, left: 100 },
+          animated: true
+        });
+        console.log('MapDisplay: Map fitted to current segment successfully');
+      } catch (error) {
+        console.error("MapDisplay: Failed to fit map to current segment:", error);
+        fitToRoutePoints(); // Fallback to entire route
+      }
+    }
+  }, [currentSegmentCoordinates, currentLocation]);
 
   const fitToAreaBounds = useCallback(() => {
     console.log('MapDisplay: Fitting to area bounds');
@@ -165,24 +205,31 @@ const MapDisplay = ({
     // Determine what to fit to based on props
     if (selectedBin) {
       centerOnSelectedBin();
+    } else if (fitToCurrentSegment && currentSegmentCoordinates.length > 0) {
+      // Priority 1: Fit to current navigation segment if in navigation mode
+      fitToCurrentSegmentPoints();
     } else if (fitToRoute && routeCoordinates.length > 0) {
+      // Priority 2: Fit to complete route if in route planning mode
       fitToRoutePoints();
     } else if (fitToArea && areaCoordinates.length > 0) {
+      // Priority 3: Fit to area if in area view mode
       fitToAreaBounds();
-      
     } else {
+      // Priority 4: Fallback to fitting all bins
       fitToBins();
-      
     }
   }, [
     selectedBin, 
     centerOnSelectedBin,
+    fitToCurrentSegment,
+    currentSegmentCoordinates.length,
+    fitToCurrentSegmentPoints,
     fitToRoute, 
-    fitToArea, 
-    routeCoordinates.length, 
-    areaCoordinates.length, 
-    fitToRoutePoints, 
+    fitToRoutePoints,
+    fitToArea,
     fitToAreaBounds, 
+    routeCoordinates.length, 
+    areaCoordinates.length,
     fitToBins
   ]);
 
@@ -247,12 +294,21 @@ const MapDisplay = ({
       {/* Dump location marker (if provided) */}
       {dumpLocation && <DumpLocation coordinate={dumpLocation} />}
 
-      {/* Optimized route polyline (if provided) */}
+      {/* Complete route polyline (in a lighter color if we're navigating) */}
       {routeCoordinates.length > 0 && (
         <Polyline
           coordinates={routeCoordinates}
           strokeWidth={4}
-          strokeColor="rgba(0,100,255,0.7)"
+          strokeColor={currentSegmentCoordinates.length > 0 ? "rgba(0,100,255,0.3)" : "rgba(0,100,255,0.7)"}
+        />
+      )}
+      
+      {/* Current navigation segment polyline (highlighted) */}
+      {currentSegmentCoordinates.length > 0 && (
+        <Polyline
+          coordinates={currentSegmentCoordinates}
+          strokeWidth={5}
+          strokeColor="rgba(0,100,255,0.9)"
         />
       )}
 

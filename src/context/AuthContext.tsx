@@ -47,6 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('AuthProvider: Sign in successful');
       
       const newToken = response.token;
+      console.log('AuthProvider: New token received:', newToken);
       setToken(newToken);
       await AsyncStorage.setItem('@auth_token', newToken);
       console.log('AuthProvider: Token stored in AsyncStorage');
