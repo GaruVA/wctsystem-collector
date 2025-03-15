@@ -137,7 +137,7 @@ const MapDisplay = ({
         }
         
         mapRef.current.fitToCoordinates(coordinatesToFit, {
-          edgePadding: { top: 100, right: 100, bottom: 100, left: 100 },
+          edgePadding: { top: 150, right: 50, bottom: 20, left: 50 },
           animated: true
         });
         console.log('MapDisplay: Map fitted to current segment successfully');

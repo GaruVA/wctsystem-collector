@@ -1,6 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
-import { IconButton } from 'react-native-paper';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 const NotificationIcon = ({ style }: { style?: any }) => {
@@ -8,37 +8,33 @@ const NotificationIcon = ({ style }: { style?: any }) => {
   return (
     <TouchableOpacity 
       style={[styles.container, style]} 
-      onPress={() => navigation.navigate('Notifications')} // navigate to Notifications screen
-      activeOpacity={0.9} // NEW: Adjusted active opacity 
+      onPress={() => navigation.navigate('Notification')}
+      activeOpacity={0.8}
     >
-      <IconButton
-        icon="bell"
-        size={24} // icon size remains unchanged
-        onPress={undefined} // disable inner onPress
-        pointerEvents="none"  // ensure the icon doesn't intercept touch events
-        style={styles.icon}
-      />
+      <View style={styles.iconContainer}>
+        <MaterialIcons name="notifications" size={24} color="#3B82F6" />
+      </View>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
-    borderRadius: 40, // larger circular background
-    width: 45,        // container size defines the button area
-    height: 45,
-    justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',           // NEW: Shadow properties added
+    justifyContent: 'center',
+  },
+  iconContainer: {
+    backgroundColor: '#fff',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 5,
-    // ...existing styles such as shadow if needed...
-  },
-  icon: {
-    // ...existing code...
   },
 });
 

@@ -23,92 +23,85 @@ const RouteDetails = ({
   isNavigating = false,
   collectedBins = 0
 }: RouteDetailsProps) => {
-  console.log('RouteDetails: Component rendering', {
-    distance,
-    estimatedTime,
-    binsCount,
-    routeName,
-    isNavigating,
-    collectedBins
-  });
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{routeName}</Text>
+        <Text style={styles.headerTitle}>Collection Route</Text>
         {onClose && (
           <TouchableOpacity 
             style={styles.closeButton} 
-            onPress={() => {
-              console.log('RouteDetails: Close button pressed');
-              onClose();
-            }}
+            onPress={onClose}
           >
-            <MaterialIcons name="close" size={24} color="black" />
+            <MaterialIcons name="close" size={24} color="#111827" />
           </TouchableOpacity>
         )}
       </View>
 
       <View style={styles.content}>
-        <View style={styles.statsRow}>
-          <View style={styles.statBlock}>
-            <Text style={styles.label}>Total Distance</Text>
-            <Text style={styles.value}>{distance}</Text>
+        <View style={styles.statsCard}>
+          <View style={styles.statItem}>
+            <MaterialIcons name="route" size={24} color="#3B82F6" />
+            <Text style={styles.statValue}>{distance}</Text>
+            <Text style={styles.statLabel}>Total Distance</Text>
           </View>
-          <View style={styles.statBlock}>
-            <Text style={styles.label}>Estimated Time</Text>
-            <Text style={styles.value}>{estimatedTime}</Text>
+          <View style={styles.divider} />
+          <View style={styles.statItem}>
+            <MaterialIcons name="schedule" size={24} color="#3B82F6" />
+            <Text style={styles.statValue}>{estimatedTime}</Text>
+            <Text style={styles.statLabel}>Estimated Time</Text>
           </View>
         </View>
 
         {isNavigating ? (
-          // Navigation mode UI
-          <View>
-            <View style={styles.progressContainer}>
-              <Text style={styles.progressLabel}>Collection Progress</Text>
-              <View style={styles.progressBarContainer}>
-                <View 
-                  style={[
-                    styles.progressBar,
-                    { width: `${binsCount > 0 ? (collectedBins / binsCount) * 100 : 0}%` }
-                  ]} 
-                />
-              </View>
-              <Text style={styles.progressText}>
-                {collectedBins} of {binsCount} bins collected
-              </Text>
+          <View style={styles.progressCard}>
+            <View style={styles.progressHeader}>
+              <MaterialIcons name="format-list-numbered" size={20} color="#3B82F6" />
+              <Text style={styles.progressTitle}>Collection Progress</Text>
             </View>
-
-            <TouchableOpacity 
-              style={[styles.button, styles.endButton]} 
-              onPress={onStartRoute}
-            >
-              <MaterialIcons name="stop" size={20} color="#fff" />
-              <Text style={styles.buttonText}>End Navigation</Text>
-            </TouchableOpacity>
+            <View style={styles.progressBarContainer}>
+              <View 
+                style={[
+                  styles.progressBar,
+                  { width: `${binsCount > 0 ? (collectedBins / binsCount) * 100 : 0}%` }
+                ]} 
+              />
+            </View>
+            <Text style={styles.progressText}>
+              {collectedBins} of {binsCount} bins collected
+            </Text>
           </View>
         ) : (
-          // Planning mode UI
-          <View>
-            <View style={styles.editTip}>
-              <MaterialIcons name="info-outline" size={16} color="#3B82F6" />
-              <Text style={styles.tipText}>
-                Tap bins on map to add or remove them from route
-              </Text>
+          <View style={styles.infoCard}>
+            <View style={styles.infoHeader}>
+              <MaterialIcons name="info" size={20} color="#3B82F6" />
+              <Text style={styles.infoTitle}>Planning Mode</Text>
             </View>
-
-            <TouchableOpacity 
-              style={styles.startButton} 
-              onPress={() => {
-                console.log('RouteDetails: Start route button pressed');
-                onStartRoute();
-              }}
-            >
-              <MaterialIcons name="directions" size={20} color="#fff" />
-              <Text style={styles.buttonText}>Start Route</Text>
-            </TouchableOpacity>
+            <Text style={styles.infoText}>
+              Tap bins on the map to add or remove them from your route
+            </Text>
+            <View style={styles.binsCount}>
+              <MaterialIcons name="delete" size={20} color="#6B7280" />
+              <Text style={styles.binsCountText}>{binsCount} bins selected</Text>
+            </View>
           </View>
         )}
+
+        <TouchableOpacity 
+          style={[
+            styles.actionButton,
+            isNavigating ? styles.endButton : styles.startButton
+          ]} 
+          onPress={onStartRoute}
+        >
+          <MaterialIcons 
+            name={isNavigating ? "stop" : "directions"} 
+            size={20} 
+            color="#fff" 
+          />
+          <Text style={styles.actionButtonText}>
+            {isNavigating ? 'End Navigation' : 'Start Route'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -117,6 +110,7 @@ const RouteDetails = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
   },
   header: {
     padding: 16,
@@ -127,13 +121,11 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-    backgroundColor: '#fff',
   },
   headerTitle: {
     color: '#111827',
     fontWeight: 'bold',
     fontSize: 18,
-    textAlign: 'center',
   },
   closeButton: {
     position: 'absolute',
@@ -144,97 +136,120 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
   },
-  statsRow: {
+  statsCard: {
+    backgroundColor: '#F0F9FF',
+    borderRadius: 12,
+    padding: 16,
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  statBlock: {
     alignItems: 'center',
-    flex: 1,
-    padding: 8,
+    marginBottom: 16,
   },
-  label: {
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  divider: {
+    width: 1,
+    height: '100%',
+    backgroundColor: '#E5E7EB',
+    marginHorizontal: 16,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginTop: 8,
+  },
+  statLabel: {
     fontSize: 14,
     color: '#6B7280',
-    marginBottom: 8,
+    marginTop: 4,
   },
-  value: {
-    fontSize: 18,
+  progressCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  progressTitle: {
+    fontSize: 16,
     fontWeight: '600',
     color: '#111827',
-  },
-  startButton: {
-    backgroundColor: '#10B981', // Green
-    paddingVertical: 14,
-    marginTop: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  endButton: {
-    backgroundColor: '#EF4444', // Red for ending navigation
-    paddingVertical: 14,
-    marginTop: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  button: {
-    paddingVertical: 14,
-    marginTop: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
     marginLeft: 8,
   },
-  editTip: {
-    backgroundColor: '#EBF5FF',
-    padding: 10,
-    borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 16,
-  },
-  tipText: {
-    color: '#3B82F6',
-    marginLeft: 6,
-    fontSize: 14,
-  },
-  progressContainer: {
-    marginVertical: 16,
-  },
-  progressLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 8,
-  },
   progressBarContainer: {
-    height: 10,
+    height: 8,
     backgroundColor: '#E5E7EB',
-    borderRadius: 5,
+    borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 8,
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#10B981', // Green
+    backgroundColor: '#3B82F6',
   },
   progressText: {
     fontSize: 14,
-    color: '#111827',
+    color: '#6B7280',
     textAlign: 'center',
+  },
+  infoCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  infoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginLeft: 8,
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 12,
+  },
+  binsCount: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    padding: 8,
+    borderRadius: 8,
+  },
+  binsCountText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginLeft: 8,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  startButton: {
+    backgroundColor: '#10B981',
+  },
+  endButton: {
+    backgroundColor: '#EF4444',
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

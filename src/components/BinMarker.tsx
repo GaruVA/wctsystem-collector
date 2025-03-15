@@ -1,12 +1,13 @@
 import React from 'react';
-import { Marker } from 'react-native-maps';
 import { View, StyleSheet } from 'react-native';
+import { Marker } from 'react-native-maps';
+import { MaterialIcons } from '@expo/vector-icons';
 
 interface Bin {
   _id: string;
   location: {
     type: string;
-    coordinates: [number, number]; // [longitude, latitude]
+    coordinates: [number, number];
   };
   fillLevel: number;
   lastCollected: string;
@@ -14,52 +15,43 @@ interface Bin {
 
 interface BinMarkerProps {
   bin: Bin;
-  onPress?: () => void;
-  isSelected?: boolean; // Add selected state
-  isRouteStop?: boolean; // New prop to indicate if bin is part of route
+  isSelected?: boolean;
+  isRouteStop?: boolean;
+  onPress: () => void;
 }
 
-const BinMarker = ({ bin, onPress, isSelected = false, isRouteStop = false }: BinMarkerProps) => {
-  console.log(`BinMarker: Rendering bin ${bin._id.substring(0,8)} with fill level ${bin.fillLevel}%${isSelected ? ' (SELECTED)' : ''}${isRouteStop ? ' (ROUTE)' : ''}`);
-  
-  // Determine color based on fill level
-  const getFillColor = (fillLevel: number) => {
-    console.log(`BinMarker: Determining color for fill level ${fillLevel}`);
-    if (fillLevel >= 95) return '#FF3B30'; // Red for urgent
-    if (fillLevel >= 70) return '#FF9500'; // Orange for priority
-    if (fillLevel >= 40) return '#FFCC00'; // Yellow for moderate
-    return '#34C759'; // Green for low
+const BinMarker = ({ bin, isSelected, isRouteStop, onPress }: BinMarkerProps) => {
+  const getFillLevelColor = (level: number) => {
+    if (level >= 90) return '#EF4444';
+    if (level >= 70) return '#F59E0B';
+    if (level >= 50) return '#FBBF24';
+    return '#10B981';
   };
 
-  const fillColor = getFillColor(bin.fillLevel);
-  
+  const markerColor = getFillLevelColor(bin.fillLevel);
+
   return (
     <Marker
       coordinate={{
         latitude: bin.location.coordinates[1],
-        longitude: bin.location.coordinates[0]
+        longitude: bin.location.coordinates[0],
       }}
-      anchor={{ x: 0.2, y: 0.3 }} // This makes the bottom of the marker point to the exact location
-      opacity={isRouteStop ? 1 : 0.8} // Make non-route bins slightly transparent
-      onPress={() => {
-        console.log(`BinMarker: Bin ${bin._id} pressed`);
-        onPress && onPress();
-      }}
+      onPress={onPress}
     >
-      <View style={styles.markerContainer}>
-        <View style={[
-          styles.marker, 
-          { backgroundColor: fillColor },
-          isSelected && styles.selectedMarker,
-          isRouteStop && styles.routeMarker,
-          !isRouteStop && styles.nonRouteMarker
-        ]}>
-          <View style={[
-            styles.inner,
-            isSelected && styles.selectedInner,
-            isRouteStop && styles.routeInner
-          ]} />
+      <View style={[
+        styles.markerContainer,
+        isSelected && styles.selectedMarker,
+        isRouteStop && styles.routeMarker
+      ]}>
+        <View style={[styles.markerInner, { backgroundColor: markerColor }]}>
+          <MaterialIcons 
+            name="delete" 
+            size={16} 
+            color="#fff" 
+          />
         </View>
+        {isSelected && <View style={styles.selectedRing} />}
+        {isRouteStop && <View style={styles.routeRing} />}
       </View>
     </Marker>
   );
@@ -68,70 +60,46 @@ const BinMarker = ({ bin, onPress, isSelected = false, isRouteStop = false }: Bi
 const styles = StyleSheet.create({
   markerContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  marker: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+  markerInner: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: 'white'
+    borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   selectedMarker: {
-    width: 25,
-    height: 25,
-    borderRadius: 12.5,
-    borderWidth: 3,
-    borderColor: '#3B82F6' // Blue border for selected bins
+    transform: [{ scale: 1.1 }],
+  },
+  selectedRing: {
+    position: 'absolute',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: '#3B82F6',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
   },
   routeMarker: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    transform: [{ scale: 1.1 }],
+  },
+  routeRing: {
+    position: 'absolute',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 2,
-    borderColor: '#fff', // White border for route bins
-    zIndex: 3, // Ensure route bins are on top
+    borderColor: '#10B981',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
   },
-  nonRouteMarker: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd', // Light gray border for non-route bins
-  },
-  inner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: 'rgba(255,255,255,0.5)'
-  },
-  selectedInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: 'rgba(255,255,255,0.7)'
-  },
-  routeInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: 'rgba(255,255,255,0.7)'
-  },
-  pointer: {
-    width: 0,
-    height: 0,
-    backgroundColor: 'transparent',
-    borderStyle: 'solid',
-    borderLeftWidth: 5,
-    borderRightWidth: 5,
-    borderBottomWidth: 7,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: 'white',
-    transform: [{ rotate: '180deg' }], // Point downward
-    marginTop: -1, // Slight overlap with the circle
-  }
 });
 
 export default BinMarker;

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 
 const API_BASE = Platform.OS === 'android'
-  ? 'http://10.249.68.197:5000/api'
+  ? 'http://192.168.1.24:5000/api'
   : 'http://localhost:5000/api';
 
 console.log('API_BASE URL:', API_BASE);
@@ -85,6 +85,23 @@ export const reportIssue = async (binId: string, issueType: string, description:
     return response.data;
   } catch (error) {
     console.error('API: Failed to report issue:', error);
+    throw error;
+  }
+};
+
+/**
+ * Mark a bin as collected
+ */
+export const collectBin = async (binId: string, token: string): Promise<Bin> => {
+  console.log('API: Marking bin as collected:', binId);
+  try {
+    const response = await axios.post(`${API_BASE}/bins/${binId}/collect`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    console.log('API: Bin marked as collected, fill level reset');
+    return response.data.bin;
+  } catch (error) {
+    console.error('API: Failed to mark bin as collected:', error);
     throw error;
   }
 };

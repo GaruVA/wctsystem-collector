@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface Bin {
@@ -21,6 +21,7 @@ interface NavigationSheetProps {
   distanceToNext?: string;
   onBinCollected: (binId: string) => void;
   onEndNavigation: () => void;
+  showDirections?: boolean; // Add new prop to control directions visibility
 }
 
 const NavigationSheet = ({ 
@@ -30,117 +31,81 @@ const NavigationSheet = ({
   nextInstruction = "Proceed to the first bin",
   distanceToNext = "Calculating...",
   onBinCollected,
-  onEndNavigation
+  onEndNavigation,
+  showDirections = true // Default to true for backward compatibility
 }: NavigationSheetProps) => {
-  // Calculate the remaining bins count
-  const remainingBins = bins.length - collectedBins.size;
-  
-  // Format the bin address or provide default
-  const formatAddress = (bin: Bin) => {
-    return bin.address || `Bin at ${bin.location.coordinates[1].toFixed(6)}, ${bin.location.coordinates[0].toFixed(6)}`;
-  };
-  
-  const getBinStatus = (bin: Bin, index: number) => {
-    // Already collected
-    if (collectedBins.has(bin._id)) {
-      return {
-        icon: "check-circle" as const,
-        iconColor: "#10B981",
-        containerStyle: styles.collectedItem,
-        textStyle: styles.collectedText
-      };
-    }
-    
-    // Current bin to collect
-    if (index === currentBinIndex) {
-      return {
-        icon: "location-on" as const,
-        iconColor: "#3B82F6", 
-        containerStyle: styles.currentItem,
-        textStyle: styles.currentText
-      };
-    }
-    
-    // Future bin - using a valid Material Icon name
-    return {
-      icon: "radio-button-unchecked" as const, // Changed from "circle-outline" to a valid icon name
-      iconColor: "#6B7280",
-      containerStyle: {},
-      textStyle: {}
-    };
-  };
+  const currentBin = bins[currentBinIndex];
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Turn-by-Turn Navigation</Text>
+        <Text style={styles.headerTitle}>Collection Route</Text>
         <TouchableOpacity 
           style={styles.closeButton}
           onPress={onEndNavigation}
         >
-          <MaterialIcons name="close" size={24} color="black" />
+          <MaterialIcons name="close" size={24} color="#111827" />
         </TouchableOpacity>
       </View>
 
-      {/* Next instruction and current stats */}
-      <View style={styles.instructionContainer}>
-        <View style={styles.instructionIconContainer}>
-          <MaterialIcons 
-            name="directions" 
-            size={24} 
-            color="#3B82F6" 
+      {/* Only show instruction card if showDirections is true */}
+      {showDirections && (
+        <View style={styles.instructionCard}>
+          <View style={styles.instructionIconContainer}>
+            <MaterialIcons name="navigation" size={24} color="#3B82F6" />
+          </View>
+          <View style={styles.instructionContent}>
+            <Text style={styles.instructionText}>{nextInstruction}</Text>
+            <Text style={styles.distanceText}>{distanceToNext}</Text>
+          </View>
+        </View>
+      )}
+      
+      {/* Progress indicator */}
+      <View style={[styles.progressCard, !showDirections && styles.progressCardNoMargin]}>
+        <View style={styles.progressHeader}>
+          <MaterialIcons name="route" size={20} color="#3B82F6" />
+          <Text style={styles.progressTitle}>Collection Progress</Text>
+        </View>
+        <View style={styles.progressBarContainer}>
+          <View 
+            style={[
+              styles.progressBar, 
+              { width: `${(collectedBins.size / bins.length) * 100}%` }
+            ]} 
           />
         </View>
-        <View style={styles.instructionTextContainer}>
-          <Text style={styles.instructionText}>{nextInstruction}</Text>
-          <Text style={styles.distanceText}>{distanceToNext}</Text>
+        <Text style={styles.progressText}>
+          {collectedBins.size} of {bins.length} bins collected
+        </Text>
+      </View>
+
+      {currentBin && (
+        <View style={styles.currentBinCard}>
+          <Text style={styles.currentBinTitle}>Current Bin</Text>
+          <View style={styles.binDetails}>
+            <View style={styles.binInfoRow}>
+              <MaterialIcons name="location-on" size={20} color="#3B82F6" />
+              <Text style={styles.binAddress}>
+                {currentBin.address || `Bin at ${currentBin.location.coordinates[1].toFixed(6)}, ${currentBin.location.coordinates[0].toFixed(6)}`}
+              </Text>
+            </View>
+            <View style={styles.binInfoRow}>
+              <MaterialIcons name="opacity" size={20} color="#6B7280" />
+              <Text style={styles.binFillLevel}>Fill Level: {currentBin.fillLevel}%</Text>
+            </View>
+            {!collectedBins.has(currentBin._id) && (
+              <TouchableOpacity 
+                style={styles.collectButton}
+                onPress={() => onBinCollected(currentBin._id)}
+              >
+                <MaterialIcons name="check" size={20} color="#fff" />
+                <Text style={styles.collectButtonText}>Collect Bin</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-      </View>
-      
-      {/* Bins list */}
-      <View style={styles.listContainer}>
-        <Text style={styles.listHeader}>Collection Route</Text>
-        <FlatList
-          data={bins}
-          keyExtractor={(item) => item._id}
-          renderItem={({ item, index }) => {
-            const { icon, iconColor, containerStyle, textStyle } = getBinStatus(item, index);
-            
-            return (
-              <View style={[styles.binItem, containerStyle]}>
-                <MaterialIcons name={icon} size={24} color={iconColor} />
-                <View style={styles.binTextContainer}>
-                  <Text style={[styles.binAddress, textStyle]}>
-                    {formatAddress(item)}
-                  </Text>
-                  <Text style={[styles.fillLevel, textStyle]}>
-                    Fill Level: {item.fillLevel}%
-                  </Text>
-                </View>
-                
-                {index === currentBinIndex && !collectedBins.has(item._id) && (
-                  <TouchableOpacity 
-                    style={styles.collectButton}
-                    onPress={() => onBinCollected(item._id)}
-                  >
-                    <Text style={styles.collectButtonText}>Collect</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            );
-          }}
-          style={styles.list}
-        />
-      </View>
-      
-      {/* End navigation button */}
-      <TouchableOpacity 
-        style={styles.endButton}
-        onPress={onEndNavigation}
-      >
-        <MaterialIcons name="stop" size={20} color="#fff" />
-        <Text style={styles.buttonText}>End Navigation</Text>
-      </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -164,7 +129,6 @@ const styles = StyleSheet.create({
     color: '#111827',
     fontWeight: 'bold',
     fontSize: 18,
-    textAlign: 'center',
   },
   closeButton: {
     position: 'absolute',
@@ -172,110 +136,132 @@ const styles = StyleSheet.create({
     top: 14,
     padding: 4,
   },
-  instructionContainer: {
-    flexDirection: 'row',
+  instructionCard: {
+    backgroundColor: '#F0F9FF',
+    margin: 16,
     padding: 16,
-    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
   },
   instructionIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#EBF5FF',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
-  instructionTextContainer: {
+  instructionContent: {
     flex: 1,
   },
   instructionText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#111827',
+    marginBottom: 4,
   },
   distanceText: {
     fontSize: 14,
     color: '#6B7280',
-    marginTop: 2,
   },
-  listContainer: {
-    flex: 1,
+  progressCard: {
+    margin: 16,
+    marginTop: 0,
     padding: 16,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
   },
-  listHeader: {
+  progressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  progressTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
+    marginLeft: 8,
+  },
+  progressBarContainer: {
+    height: 8,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    overflow: 'hidden',
     marginBottom: 8,
   },
-  list: {
-    flex: 1,
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#3B82F6',
   },
-  binItem: {
+  progressText: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  progressCardNoMargin: {
+    marginTop: 16,
+  },
+  currentBinCard: {
+    margin: 16,
+    padding: 16,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+  },
+  currentBinTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 12,
+  },
+  binDetails: {
+    gap: 12,
+  },
+  binInfoRow: {
     flexDirection: 'row',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
     alignItems: 'center',
-  },
-  currentItem: {
-    backgroundColor: '#EBF5FF',
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: '#3B82F6',
-  },
-  collectedItem: {
-    opacity: 0.6,
-  },
-  binTextContainer: {
-    flex: 1,
-    marginLeft: 12,
+    gap: 8,
   },
   binAddress: {
+    flex: 1,
     fontSize: 15,
     fontWeight: '500',
     color: '#111827',
   },
-  fillLevel: {
-    fontSize: 13,
+  binFillLevel: {
+    fontSize: 14,
     color: '#6B7280',
-    marginTop: 2,
-  },
-  currentText: {
-    color: '#3B82F6',
-    fontWeight: '500',
-  },
-  collectedText: {
-    textDecorationLine: 'line-through',
   },
   collectButton: {
     backgroundColor: '#10B981',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderRadius: 8,
+    gap: 8,
+    marginTop: 4,
   },
   collectButtonText: {
     color: '#fff',
-    fontWeight: '500',
+    fontWeight: '600',
     fontSize: 14,
   },
   endButton: {
     backgroundColor: '#EF4444',
-    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
     margin: 16,
     borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    gap: 8,
   },
-  buttonText: {
+  endButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginLeft: 8,
+    fontWeight: '600',
   },
 });
 

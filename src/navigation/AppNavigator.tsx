@@ -4,25 +4,22 @@ import LoginScreen from '../screens/LoginScreen';
 import NotificationScreen from '../screens/NotificationScreen';
 import { useAuth } from '../context/AuthContext';
 import MainScreen from '../screens/MainScreen';
+import RouteCompletionScreen from '../screens/RouteCompletionScreen';
 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
-  // Use token directly from auth context
   const { token } = useAuth();
 
-  // Choose which navigation structure to show based on token
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!token ? (
-        // Auth screen when no token
         <Stack.Screen
           name="Login"
           component={LoginScreen}
           options={{ headerShown: false }}
         />
       ) : (
-        // App screens when token exists
         <>
           <Stack.Screen
             name="Main"
@@ -31,9 +28,15 @@ const AppNavigator = () => {
           />
           
           <Stack.Screen
-            name="Notifications"
+            name="Notification"
             component={NotificationScreen}
             options={{ headerShown: true, title: 'Notifications' }}
+          />
+          
+          <Stack.Screen
+            name="RouteCompletion"
+            component={RouteCompletionScreen}
+            options={{ headerShown: false }}
           />
         </>
       )}

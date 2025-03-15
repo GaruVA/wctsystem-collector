@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, BackHandler, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Alert, BackHandler, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation, NavigationProp } from '@react-navigation/native'; // Add navigation import
+import type { RootStackParamList } from '../navigation/types';
 import MapDisplay from '../components/MapDisplay';
 import RouteDetails from '../components/RouteDetails';
 import AreaDetails from '../components/AreaDetails';
@@ -8,8 +10,9 @@ import BinDetails from '../components/BinDetails';
 import NotificationIcon from '../components/NotificationIcon';
 import ReportIssueModal from '../components/ReportIssueModal';
 import NavigationSheet from '../components/NavigationSheet';
+// Remove RouteCompletionSummary import since we'll navigate to a screen instead
 import { useAuth } from '../context/AuthContext';
-import { getCollectorArea, reportIssue, optimizeBinOrder, generateRoutePolyline, getCollectorLocation, type AreaData, type Bin } from '../services/api';
+import { getCollectorArea, reportIssue, optimizeBinOrder, generateRoutePolyline, getCollectorLocation, collectBin, type AreaData, type Bin } from '../services/api';
 import { isCloseToWaypoint } from '../utils/navigationHelpers';
 
 interface RouteData {
@@ -31,6 +34,7 @@ interface RouteData {
 
 const MainScreen = () => {
   const { token, signOut } = useAuth();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>(); // Add navigation hook
   
   // Shared state
   const [currentLocation, setCurrentLocation] = useState({
@@ -75,11 +79,14 @@ const MainScreen = () => {
     longitude: number;
   } | null>(null);
 
+  // Add state to track if the dump location has been reached
+  const [isDumpLocationReached, setIsDumpLocationReached] = useState(false);
+
   // Define heights for different states
-  const homeDetailsHeight = 408; // Example height for home view
-  const routeDetailsHeight = 333; // Example height for route view
-  const binDetailsHeight = 373; // Example height for bin details view
-  const navigationDetailsHeight = 500; // Height for turn-by-turn navigation sheet
+  const homeDetailsHeight = 394; // Example height for home view
+  const routeDetailsHeight = 445; // Example height for route view
+  const binDetailsHeight = 465; // Example height for bin details view
+  const navigationDetailsHeight = 415; // Height for turn-by-turn navigation sheet
 
   // Function to get the current details container height
   const getDetailsHeight = () => {
@@ -143,8 +150,26 @@ const MainScreen = () => {
         
         setNextInstruction("Proceed to dump location");
         setDistanceToNext(`${newRouteData.distance} remaining`);
+        
+        // Reset current bin index since all bins are collected
+        setCurrentBinIndex(-1);
+
+        // Check if we're already at the dump location
+        const isClose = isCloseToWaypoint(
+          startLocation,
+          [dumpLocation.longitude, dumpLocation.latitude],
+          100 // 100m threshold
+        );
+        
+        if (isClose) {
+          // If we're at the dump location, show the completion screen
+          setIsDumpLocationReached(true);
+        }
+        
         return;
       }
+      
+      console.log('MainScreen: Optimizing route for', remainingBins.length, 'uncollected bins');
       
       // Get the optimized order of bins first
       const optimizedOrder = await optimizeBinOrder(
@@ -175,9 +200,24 @@ const MainScreen = () => {
       if (optimizedOrder.optimizedStops.length > 0) {
         console.log('MainScreen: Creating segment from current location to next bin');
         
+        // Find the bin that corresponds to the first optimized stop
+        const nextBinCoords = optimizedOrder.optimizedStops[0];
+        const nextBinIndex = remainingBins.findIndex(bin => 
+          bin.location.coordinates[0] === nextBinCoords[0] && 
+          bin.location.coordinates[1] === nextBinCoords[1]
+        );
+        
+        // Set the current bin index to the appropriate bin in the activeBins array
+        if (nextBinIndex !== -1) {
+          const nextActiveBinIndex = activeBins.findIndex(bin => bin._id === remainingBins[nextBinIndex]._id);
+          if (nextActiveBinIndex !== -1) {
+            console.log('MainScreen: Setting new current bin index to', nextActiveBinIndex);
+            setCurrentBinIndex(nextActiveBinIndex);
+          }
+        }
+        
         try {
           // Generate a direct route from current location to the next bin only
-          const nextBinCoords = optimizedOrder.optimizedStops[0];
           const segmentWaypoints: [number, number][] = [
             [startLocation.longitude, startLocation.latitude],
             nextBinCoords
@@ -197,7 +237,21 @@ const MainScreen = () => {
               firstStep.distance || 
               `${segmentRouteData.distance} to next bin`
             );
+          } else {
+            // Basic instruction if no detailed steps
+            setNextInstruction("Proceed to next bin");
+            setDistanceToNext(segmentRouteData.distance || "Calculating...");
           }
+          
+          // Check if user is close to the next bin
+          const isClose = isCloseToWaypoint(startLocation, nextBinCoords, 100); // 100m threshold
+          
+          if (isClose) {
+            // Update instruction to indicate arrival at bin
+            setNextInstruction("You have arrived at the bin location");
+            setDistanceToNext("Ready to collect");
+          }
+          
         } catch (segmentError) {
           console.error('MainScreen: Error creating segment polyline:', segmentError);
           // Fallback: Try to extract the segment from the full route
@@ -206,21 +260,11 @@ const MainScreen = () => {
       } else {
         // If no stops left, use the full route (to dump location)
         setCurrentSegmentPolyline(newRouteData.route);
-      }
-      
-      // Check if user is close to the next bin
-      if (optimizedOrder.optimizedStops.length > 0) {
-        const nextBinLocation = optimizedOrder.optimizedStops[0];
-        const isClose = isCloseToWaypoint(startLocation, nextBinLocation, 100); // 100m threshold
+        setNextInstruction("Proceed to dump location");
+        setDistanceToNext(`${newRouteData.distance} remaining`);
         
-        if (isClose) {
-          // Set current bin index based on the sequence
-          setCurrentBinIndex(optimizedOrder.stops_sequence[0]);
-          
-          // Update instruction to indicate arrival at bin
-          setNextInstruction("You have arrived at the bin location");
-          setDistanceToNext("Ready to collect");
-        }
+        // Reset current bin index since all bins are collected
+        setCurrentBinIndex(-1);
       }
       
     } catch (error: any) {
@@ -230,7 +274,7 @@ const MainScreen = () => {
       setIsRouteRecalculating(false);
     }
   };
-  
+
   // Helper function to extract segment from full route when direct segment API call fails
   const extractSegmentFromFullRoute = (
     fullRoute: [number, number][],
@@ -295,6 +339,33 @@ const MainScreen = () => {
     loadAreaData();
   }, [token]);
 
+  // Effect to check if user is near the dump location
+  useEffect(() => {
+    if (!isRouteActive || !isNavigating || isDumpLocationReached) return;
+
+    // Check if all bins are collected and user is close to dump location
+    if (collectedBins.size === activeBins.length && currentLocation) {
+      const isClose = isCloseToWaypoint(
+        currentLocation,
+        [dumpLocation.longitude, dumpLocation.latitude],
+        100 // 100m threshold
+      );
+
+      if (isClose) {
+        console.log('MainScreen: Dump location reached, showing summary screen');
+        setIsDumpLocationReached(true);
+      }
+    }
+  }, [
+    currentLocation, 
+    dumpLocation, 
+    isRouteActive, 
+    isNavigating, 
+    collectedBins.size,
+    activeBins.length,
+    isDumpLocationReached
+  ]);
+
   // Set up polling to get location from database
   useEffect(() => {
     if (!token) return;
@@ -326,6 +397,20 @@ const MainScreen = () => {
                 setLastRouteLocation(newLocation);
                 updateRoutePolyline(newLocation, activeBins);
               }
+              
+              // Check if user is at dump location after all bins are collected
+              if (collectedBins.size === activeBins.length && !isDumpLocationReached) {
+                const isClose = isCloseToWaypoint(
+                  newLocation,
+                  [dumpLocation.longitude, dumpLocation.latitude],
+                  100 // 100m threshold
+                );
+                
+                if (isClose) {
+                  console.log('MainScreen: Dump location reached, showing summary screen');
+                  setIsDumpLocationReached(true);
+                }
+              }
             } 
             // If just planning, only update if moved significantly
             else {
@@ -350,7 +435,7 @@ const MainScreen = () => {
     // - During navigation: Every 15 seconds (4 requests per minute)
     // - When route planning: Every 30 seconds (2 requests per minute)
     // - Normal mode: Every 60 seconds (1 request per minute)
-    const interval = isNavigating ? 15000 : isRouteActive ? 30000 : 60000;
+    const interval = isNavigating ? 3000 : isRouteActive ? 30000 : 60000;
     console.log(`MainScreen: Setting location polling interval to ${interval/1000} seconds`);
     
     const locationPoll = setInterval(fetchLocation, interval);
@@ -359,7 +444,7 @@ const MainScreen = () => {
       isMounted = false;
       clearInterval(locationPoll);
     };
-  }, [token, isRouteActive, isNavigating, activeBins, collectedBins, lastRouteLocation]);
+  }, [token, isRouteActive, isNavigating, activeBins, collectedBins, lastRouteLocation, isDumpLocationReached, dumpLocation]);
 
   // Handle Android back button
   useEffect(() => {
@@ -537,26 +622,83 @@ const MainScreen = () => {
     }
   };
 
-  const handleBinCollected = (binId: string) => {
+  const handleBinCollected = async (binId: string) => {
     console.log('MainScreen: Bin collected:', binId);
-    const newCollectedBins = new Set(collectedBins);
-    newCollectedBins.add(binId);
-    setCollectedBins(newCollectedBins);
     
-    // Recalculate the route for remaining bins
-    if (currentLocation) {
-      updateRoutePolyline(currentLocation, activeBins);
+    if (!token) {
+      console.log('MainScreen: No token available');
+      return;
     }
-    
-    // If all bins are collected, prompt to end route
-    if (newCollectedBins.size === activeBins.length) {
-      Alert.alert('All Bins Collected',
-        'You have collected all bins. Proceed to the dump location?',
-        [
-          { text: 'Continue', style: 'cancel' },
-          { text: 'End Navigation', onPress: handleExitRoute }
-        ]
+  
+    try {
+      // Update collected bins set
+      const newCollectedBins = new Set(collectedBins);
+      newCollectedBins.add(binId);
+      setCollectedBins(newCollectedBins);
+  
+      // Call API to mark bin as collected and get updated bin data
+      const updatedBin = await collectBin(binId, token);
+      
+      // Update bin data in areaData state
+      setAreaData(prevData => {
+        if (!prevData) return null;
+        return {
+          ...prevData,
+          bins: prevData.bins.map(bin => 
+            bin._id === binId ? updatedBin : bin
+          )
+        };
+      });
+  
+      // Update bin data in activeBins state
+      setActiveBins(prevBins =>
+        prevBins.map(bin =>
+          bin._id === binId ? updatedBin : bin
+        )
       );
+  
+      // Find the remaining uncollected bins
+      const remainingBins = activeBins.filter(bin => !newCollectedBins.has(bin._id));
+      console.log('MainScreen: Remaining bins after collection:', remainingBins.length);
+      
+      // Clear current segment polyline for visual feedback
+      setCurrentSegmentPolyline([]);
+      
+      // Only proceed with route recalculation if we have current location
+      if (!currentLocation) {
+        console.log('MainScreen: No current location available, cannot update route');
+        setIsRouteRecalculating(false);
+        return;
+      }
+      
+      // Set route recalculation loading state
+      setIsRouteRecalculating(true);
+      
+      // Force a complete route recalculation by resetting the last route location
+      setLastRouteLocation(null);
+      
+      // Immediately recalculate route with all bins (collected ones will be filtered in updateRoutePolyline)
+      await updateRoutePolyline(currentLocation, activeBins);
+      
+      console.log('MainScreen: Route updated after bin collection');
+      
+      // If all bins are collected, the updateRoutePolyline function will automatically
+      // create a route to the dump location as the next destination
+      if (remainingBins.length === 0) {
+        console.log('MainScreen: All bins collected, navigation to dump location started automatically');
+        setNextInstruction("Proceed to dump location");
+        setDistanceToNext("Calculating route to dump location...");
+      }
+    } catch (error) {
+      console.error('MainScreen: Error updating bin collection status:', error);
+      Alert.alert('Error', 'Failed to update bin collection status.');
+      
+      // Revert collected bins state on error
+      const revertedCollectedBins = new Set(collectedBins);
+      revertedCollectedBins.delete(binId);
+      setCollectedBins(revertedCollectedBins);
+    } finally {
+      setIsRouteRecalculating(false);
     }
   };
 
@@ -583,8 +725,108 @@ const MainScreen = () => {
     }
   };
 
+  // Handle completion of route after dump location is reached
+  const handleRouteSummaryComplete = () => {
+    console.log('MainScreen: Route summary complete, returning to home');
+    // Reset all route-related state
+    setIsDumpLocationReached(false);
+    setIsRouteActive(false);
+    setIsNavigating(false);
+    setRouteData(null);
+    setOptimizedRoute([]);
+    setActiveBins([]);
+    setCollectedBins(new Set());
+    setSelectedBin(null);
+    setLastRouteLocation(null);
+  };
+
+  // Add a new function to navigate to the route completion screen
+  const navigateToRouteCompletion = () => {
+    console.log('MainScreen: Navigating to route completion screen');
+    
+    // Calculate route statistics for the completion screen
+    const now = new Date();
+    const routeStartTime = new Date(now.getTime() - (routeData?.duration ? parseInt(routeData.duration) * 60000 : 0));
+    
+    // Format times
+    const formatTime = (date: Date) => {
+      return date.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit'
+      });
+    };
+    
+    // Calculate average time per bin (if we have bins and duration)
+    const routeDurationMinutes = routeData?.duration ? 
+      parseInt(routeData.duration.replace(" min", "")) : 0;
+    
+    const avgTimePerBin = collectedBins.size > 0 && routeDurationMinutes > 0 ? 
+      `${Math.round(routeDurationMinutes / collectedBins.size)} min` : 
+      "N/A";
+    
+    // Calculate efficiency score with bonus for completing all bins
+    const efficiencyScore = Math.min(100, Math.round(
+      (collectedBins.size / activeBins.length) * 100 * 0.7 + 
+      (activeBins.length > 0 && collectedBins.size === activeBins.length ? 30 : 0)
+    ));
+    
+    // Navigate to route completion screen with route stats
+    navigation.navigate('RouteCompletion', {
+      collectedBinsCount: collectedBins.size,
+      totalBinsCount: activeBins.length,
+      totalDistance: routeData?.distance || "0 km",
+      totalDuration: routeData?.duration || "0 min",
+      averageTimePerBin: avgTimePerBin,
+      startTime: formatTime(routeStartTime),
+      endTime: formatTime(now),
+      routeEfficiencyScore: efficiencyScore
+    });
+  };
+
+  // Modify the effect that checks if the dump location is reached
+  useEffect(() => {
+    if (!isRouteActive || !isNavigating) return;
+
+    // Check if all bins are collected and user is close to dump location
+    if (collectedBins.size === activeBins.length && currentLocation) {
+      const isClose = isCloseToWaypoint(
+        currentLocation,
+        [dumpLocation.longitude, dumpLocation.latitude],
+        100 // 100m threshold
+      );
+
+      if (isClose) {
+        console.log('MainScreen: Dump location reached, navigating to summary screen');
+        // Reset route states before navigating
+        setIsDumpLocationReached(false);
+        setIsRouteActive(false);
+        setIsNavigating(false);
+        
+        // Navigate to the route completion screen
+        navigateToRouteCompletion();
+        
+        // Reset other states after navigation
+        setRouteData(null);
+        setOptimizedRoute([]);
+        setActiveBins([]);
+        setCollectedBins(new Set());
+        setSelectedBin(null);
+        setLastRouteLocation(null);
+      }
+    }
+  }, [
+    currentLocation, 
+    dumpLocation, 
+    isRouteActive, 
+    isNavigating, 
+    collectedBins.size,
+    activeBins.length,
+    navigation
+  ]);
+
   const handleExitRoute = () => {
     console.log('MainScreen: Exiting route');
+    setIsDumpLocationReached(false);
     setIsRouteActive(false);
     setIsNavigating(false);
     setRouteData(null);
@@ -614,13 +856,18 @@ const MainScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Logout button */}
-      <TouchableOpacity 
-        style={styles.logoutButton}
-        onPress={handleLogout}
-      >
-        <MaterialIcons name="logout" size={24} color="#333" />
-      </TouchableOpacity>
+      {/* Only show logout and notification when not navigating */}
+      {!isNavigating && (
+        <>
+          <TouchableOpacity 
+            style={styles.logoutButton}
+            onPress={handleLogout}
+          >
+            <MaterialIcons name="logout" size={24} color="#333" />
+          </TouchableOpacity>
+          <NotificationIcon style={styles.notificationIcon} />
+        </>
+      )}
 
       {/* Map container */}
       <View style={[styles.mapContainer, { flex: 1 }]} >
@@ -628,10 +875,10 @@ const MainScreen = () => {
           bins={areaData?.bins || []}
           optimizedRoute={isRouteActive ? optimizedRoute : []}
           // When navigating, fit to the current segment instead of the full route
-          fitToRoute={isRouteActive && !isNavigating}
+          fitToRoute={isRouteActive && !isNavigating && !isDumpLocationReached}
           // Add new props for current segment
-          currentSegment={isNavigating ? currentSegmentPolyline : []}
-          fitToCurrentSegment={isNavigating}
+          currentSegment={isNavigating && !isDumpLocationReached ? currentSegmentPolyline : []}
+          fitToCurrentSegment={isNavigating && !isDumpLocationReached}
           routeBins={activeBins}
           area={!isRouteActive ? areaData || undefined : undefined}
           fitToArea={!isRouteActive}
@@ -642,7 +889,31 @@ const MainScreen = () => {
         />
       </View>
 
-      <NotificationIcon style={styles.notificationIcon} />
+      {/* Show floating directions when navigating */}
+      {isNavigating && (
+        <View style={styles.floatingDirections}>
+          <View style={styles.directionCard}>
+            <View style={styles.directionIcon}>
+              <MaterialIcons name="navigation" size={24} color="#3B82F6" />
+            </View>
+            <View style={styles.directionContent}>
+              <Text style={styles.nextInstruction}>{nextInstruction}</Text>
+              <Text style={styles.distanceText}>{distanceToNext}</Text>
+            </View>
+          </View>
+          <View style={styles.progressBar}>
+            <View 
+              style={[
+                styles.progressFill, 
+                { width: `${(collectedBins.size / activeBins.length) * 100}%` }
+              ]} 
+            />
+          </View>
+          <Text style={styles.progressText}>
+            {collectedBins.size} of {activeBins.length} bins collected
+          </Text>
+        </View>
+      )}
 
       {/* Loading indicator for route recalculation */}
       {isRouteRecalculating && (
@@ -695,6 +966,7 @@ const MainScreen = () => {
               distanceToNext={distanceToNext}
               onBinCollected={handleBinCollected}
               onEndNavigation={() => setIsNavigating(false)}
+              showDirections={false}
             />
           ) : (
             <RouteDetails
@@ -758,6 +1030,67 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.4)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  floatingDirections: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    right: 20,
+    backgroundColor: 'transparent',
+  },
+  directionCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    marginBottom: 8,
+  },
+  directionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#EBF5FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  directionContent: {
+    flex: 1,
+  },
+  nextInstruction: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  distanceText: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  progressBar: {
+    height: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#10B981',
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#fff',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 });
 
