@@ -48,64 +48,66 @@ const NavigationSheet = ({
         </TouchableOpacity>
       </View>
 
-      {/* Only show instruction card if showDirections is true */}
-      {showDirections && (
-        <View style={styles.instructionCard}>
-          <View style={styles.instructionIconContainer}>
-            <MaterialIcons name="navigation" size={24} color="#3B82F6" />
+      <View style={styles.content}>
+        {/* Only show instruction card if showDirections is true */}
+        {showDirections && (
+          <View style={styles.instructionCard}>
+            <View style={styles.instructionIconContainer}>
+              <MaterialIcons name="navigation" size={24} color="#3B82F6" />
+            </View>
+            <View style={styles.instructionContent}>
+              <Text style={styles.instructionText}>{nextInstruction}</Text>
+              <Text style={styles.distanceText}>{distanceToNext}</Text>
+            </View>
           </View>
-          <View style={styles.instructionContent}>
-            <Text style={styles.instructionText}>{nextInstruction}</Text>
-            <Text style={styles.distanceText}>{distanceToNext}</Text>
+        )}
+        
+        {/* Progress indicator */}
+        <View style={[styles.progressCard, !showDirections && styles.progressCardNoMargin]}>
+          <View style={styles.progressHeader}>
+            <MaterialIcons name="route" size={20} color="#3B82F6" />
+            <Text style={styles.progressTitle}>Collection Progress</Text>
           </View>
+          <View style={styles.progressBarContainer}>
+            <View 
+              style={[
+                styles.progressBar, 
+                { width: `${(collectedBins.size / bins.length) * 100}%` }
+              ]} 
+            />
+          </View>
+          <Text style={styles.progressText}>
+            {collectedBins.size} of {bins.length} bins collected
+          </Text>
         </View>
-      )}
-      
-      {/* Progress indicator */}
-      <View style={[styles.progressCard, !showDirections && styles.progressCardNoMargin]}>
-        <View style={styles.progressHeader}>
-          <MaterialIcons name="route" size={20} color="#3B82F6" />
-          <Text style={styles.progressTitle}>Collection Progress</Text>
-        </View>
-        <View style={styles.progressBarContainer}>
-          <View 
-            style={[
-              styles.progressBar, 
-              { width: `${(collectedBins.size / bins.length) * 100}%` }
-            ]} 
-          />
-        </View>
-        <Text style={styles.progressText}>
-          {collectedBins.size} of {bins.length} bins collected
-        </Text>
-      </View>
 
-      {currentBin && (
-        <View style={styles.currentBinCard}>
-          <Text style={styles.currentBinTitle}>Current Bin</Text>
-          <View style={styles.binDetails}>
-            <View style={styles.binInfoRow}>
-              <MaterialIcons name="location-on" size={20} color="#3B82F6" />
-              <Text style={styles.binAddress}>
-                {currentBin.address || `Bin at ${currentBin.location.coordinates[1].toFixed(6)}, ${currentBin.location.coordinates[0].toFixed(6)}`}
-              </Text>
+        {currentBin && (
+          <View style={styles.currentBinCard}>
+            <Text style={styles.currentBinTitle}>Current Bin</Text>
+            <View style={styles.binDetails}>
+              <View style={styles.binInfoRow}>
+                <MaterialIcons name="location-on" size={20} color="#3B82F6" />
+                <Text style={styles.binAddress}>
+                  {currentBin.address || `Bin at ${currentBin.location.coordinates[1].toFixed(6)}, ${currentBin.location.coordinates[0].toFixed(6)}`}
+                </Text>
+              </View>
+              <View style={styles.binInfoRow}>
+                <MaterialIcons name="opacity" size={20} color="#6B7280" />
+                <Text style={styles.binFillLevel}>Fill Level: {currentBin.fillLevel}%</Text>
+              </View>
+              {!collectedBins.has(currentBin._id) && (
+                <TouchableOpacity 
+                  style={styles.collectButton}
+                  onPress={() => onBinCollected(currentBin._id)}
+                >
+                  <MaterialIcons name="check" size={20} color="#fff" />
+                  <Text style={styles.collectButtonText}>Collect Bin</Text>
+                </TouchableOpacity>
+              )}
             </View>
-            <View style={styles.binInfoRow}>
-              <MaterialIcons name="opacity" size={20} color="#6B7280" />
-              <Text style={styles.binFillLevel}>Fill Level: {currentBin.fillLevel}%</Text>
-            </View>
-            {!collectedBins.has(currentBin._id) && (
-              <TouchableOpacity 
-                style={styles.collectButton}
-                onPress={() => onBinCollected(currentBin._id)}
-              >
-                <MaterialIcons name="check" size={20} color="#fff" />
-                <Text style={styles.collectButtonText}>Collect Bin</Text>
-              </TouchableOpacity>
-            )}
           </View>
-        </View>
-      )}
+        )}
+      </View>
     </View>
   );
 };
@@ -116,8 +118,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
-    padding: 16,
-    paddingVertical: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -132,15 +134,18 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    right: 12,
-    top: 14,
+    right: 16,
     padding: 4,
+  },
+  content: {
+    flex: 1,
+    padding: 16,
   },
   instructionCard: {
     backgroundColor: '#F0F9FF',
-    margin: 16,
-    padding: 16,
     borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -167,11 +172,10 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   progressCard: {
-    margin: 16,
-    marginTop: 0,
-    padding: 16,
     backgroundColor: '#F8FAFC',
     borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
   },
   progressHeader: {
     flexDirection: 'row',
@@ -204,10 +208,9 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   currentBinCard: {
-    margin: 16,
-    padding: 16,
     backgroundColor: '#F8FAFC',
     borderRadius: 12,
+    padding: 16,
   },
   currentBinTitle: {
     fontSize: 16,

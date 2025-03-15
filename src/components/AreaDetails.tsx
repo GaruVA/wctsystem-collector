@@ -41,20 +41,24 @@ const AreaState = ({ stats, onCreateRoute, areaName, isLoading }: AreaStateProps
         <Text style={styles.fillLevelText}>{stats.avgFill.toFixed(0)}% average fill</Text>
       </View>
 
-      {/* Stats Grid */}
-      <View style={styles.statsGrid}>
+      {/* Stats Cards */}
+      <View style={styles.statsCard}>
         <View style={styles.statItem}>
           <MaterialIcons name="delete" size={24} color="#3B82F6" />
           <Text style={styles.statValue}>{stats.totalBins}</Text>
           <Text style={styles.statLabel}>Total Bins</Text>
         </View>
-
+        
+        <View style={styles.divider} />
+        
         <View style={styles.statItem}>
           <MaterialIcons name="priority-high" size={24} color="#F59E0B" />
           <Text style={[styles.statValue, { color: '#F59E0B' }]}>{stats.priorityBins}</Text>
           <Text style={styles.statLabel}>Priority</Text>
         </View>
-
+        
+        <View style={styles.divider} />
+        
         <View style={styles.statItem}>
           <MaterialIcons name="warning" size={24} color="#EF4444" />
           <Text style={[styles.statValue, { color: '#EF4444' }]}>{stats.urgentBins}</Text>
@@ -77,8 +81,6 @@ const AreaState = ({ stats, onCreateRoute, areaName, isLoading }: AreaStateProps
           </>
         )}
       </TouchableOpacity>
-
-      
     </View>
   </View>
 );
@@ -96,8 +98,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
-    padding: 16,
-    paddingVertical: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -110,7 +112,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   content: {
-    padding: 16,
+    padding: 20,
   },
   fillLevelCard: {
     backgroundColor: '#F0F9FF',
@@ -144,22 +146,26 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
   },
-  statsGrid: {
+  statsCard: {
+    backgroundColor: '#F0F9FF',
+    borderRadius: 12,
+    padding: 16,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+    alignItems: 'center',
     marginBottom: 16,
   },
   statItem: {
     flex: 1,
-    minWidth: 100,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 12,
     alignItems: 'center',
   },
+  divider: {
+    width: 1,
+    height: '100%',
+    backgroundColor: '#E5E7EB',
+    marginHorizontal: 16,
+  },
   statValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#111827',
     marginTop: 8,

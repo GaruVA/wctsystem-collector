@@ -113,8 +113,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
-    padding: 16,
-    paddingVertical: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -129,12 +129,11 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    right: 12,
-    top: 14,
+    right: 16,
     padding: 4,
   },
   content: {
-    padding: 16,
+    padding: 20,
   },
   statsCard: {
     backgroundColor: '#F0F9FF',
