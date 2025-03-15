@@ -22,6 +22,8 @@ interface NavigationSheetProps {
   onBinCollected: (binId: string) => void;
   onEndNavigation: () => void;
   showDirections?: boolean; // Add new prop to control directions visibility
+  currentLocation?: { latitude: number; longitude: number }; // Add current location
+  isCloseToCurrentBin?: boolean; // Add proximity indicator
 }
 
 const NavigationSheet = ({ 
@@ -32,7 +34,9 @@ const NavigationSheet = ({
   distanceToNext = "Calculating...",
   onBinCollected,
   onEndNavigation,
-  showDirections = true // Default to true for backward compatibility
+  showDirections = true, // Default to true for backward compatibility
+  currentLocation,
+  isCloseToCurrentBin = false // Default to false if not provided
 }: NavigationSheetProps) => {
   const currentBin = currentBinIndex >= 0 && currentBinIndex < bins.length ? bins[currentBinIndex] : null;
 
@@ -101,8 +105,12 @@ const NavigationSheet = ({
               </View>
               {!collectedBins.has(currentBin._id) && (
                 <TouchableOpacity 
-                  style={styles.collectButton}
+                  style={[
+                    styles.collectButton,
+                    !isCloseToCurrentBin && styles.collectButtonDisabled
+                  ]}
                   onPress={() => onBinCollected(currentBin._id)}
+                  disabled={!isCloseToCurrentBin}
                 >
                   <MaterialIcons name="check" size={20} color="#fff" />
                   <Text style={styles.collectButtonText}>Collect Bin</Text>
@@ -250,10 +258,19 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 4,
   },
+  collectButtonDisabled: {
+    backgroundColor: '#9CA3AF',
+  },
   collectButtonText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 14,
+  },
+  proximityHint: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginTop: 8,
   },
   endButton: {
     backgroundColor: '#EF4444',

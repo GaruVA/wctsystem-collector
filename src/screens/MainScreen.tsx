@@ -82,6 +82,9 @@ const MainScreen = () => {
   // Add state to track if the dump location has been reached
   const [isDumpLocationReached, setIsDumpLocationReached] = useState(false);
 
+  // Add new state for proximity to current bin
+  const [isCloseToCurrentBin, setIsCloseToCurrentBin] = useState(false);
+
   // Define heights for different states
   const homeDetailsHeight = 399; // Example height for home view
   const routeDetailsHeight = 444; // Example height for route view
@@ -466,6 +469,23 @@ const MainScreen = () => {
 
     return () => backHandler.remove();
   }, [isRouteActive]);
+
+  // Update the user's proximity to current bin whenever location changes or current bin changes
+  useEffect(() => {
+    if (!currentLocation || !isNavigating || currentBinIndex < 0 || currentBinIndex >= activeBins.length) {
+      setIsCloseToCurrentBin(false);
+      return;
+    }
+
+    const currentBin = activeBins[currentBinIndex];
+    const isClose = isCloseToWaypoint(
+      currentLocation,
+      currentBin.location.coordinates,
+      50 // 50m threshold for bin collection
+    );
+    
+    setIsCloseToCurrentBin(isClose);
+  }, [currentLocation, isNavigating, currentBinIndex, activeBins]);
 
   // Handling report issue function
   const handleReportIssue = (binId: string) => {
@@ -974,6 +994,8 @@ const MainScreen = () => {
               onBinCollected={handleBinCollected}
               onEndNavigation={() => setIsNavigating(false)}
               showDirections={false}
+              currentLocation={currentLocation}
+              isCloseToCurrentBin={isCloseToCurrentBin}
             />
           ) : (
             <RouteDetails
