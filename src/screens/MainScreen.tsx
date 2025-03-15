@@ -242,14 +242,14 @@ const MainScreen = () => {
           // Update next instruction with segment data
           if (segmentRouteData.steps && segmentRouteData.steps.length > 0) {
             const firstStep = segmentRouteData.steps[0];
-            setNextInstruction(firstStep.instruction || "Proceed to next location");
+            setNextInstruction(formatInstruction(firstStep.instruction || "Proceed to next location"));
             setDistanceToNext(
               firstStep.distance || 
               `${segmentRouteData.distance} to next bin`
             );
           } else {
             // Basic instruction if no detailed steps
-            setNextInstruction("Proceed to next bin");
+            setNextInstruction(formatInstruction("Proceed to next bin"));
             setDistanceToNext(segmentRouteData.distance || "Calculating...");
           }
           
@@ -258,7 +258,7 @@ const MainScreen = () => {
           
           if (isClose) {
             // Update instruction to indicate arrival at bin
-            setNextInstruction("You have arrived at the bin location");
+            setNextInstruction(formatInstruction("You have arrived at the bin location"));
             setDistanceToNext("Ready to collect");
           }
           
@@ -881,17 +881,76 @@ const MainScreen = () => {
     );
   };
 
+  // Function to get appropriate icon based on instruction
+  const getDirectionIcon = (instruction: string) => {
+    instruction = instruction.toLowerCase();
+    if (instruction.includes('arrived')) return 'place';
+    if (instruction.includes('left')) return 'turn-left';
+    if (instruction.includes('right')) return 'turn-right';
+    if (instruction.includes('straight') || instruction.includes('continue')) return 'straighten';
+    if (instruction.includes('u-turn')) return 'u-turn-left';
+    if (instruction.includes('dump')) return 'local-shipping';
+    if (instruction.includes('destination')) return 'place';
+    return 'navigation';
+  };
+
+  // Function to format navigation instruction into more user-friendly text
+  const formatInstruction = (instruction: string) => {
+    instruction = instruction.toLowerCase();
+    
+    // Handle special cases first
+    if (instruction.includes('arrived')) {
+      return 'You have arrived at the bin location';
+    }
+    if (instruction.includes('dump')) {
+      return 'Head to dump location';
+    }
+    if (instruction.includes('destination')) {
+      return 'Proceed to next bin';
+    }
+
+    // Format turn instructions
+    if (instruction.includes('turn')) {
+      // Extract the direction
+      let direction = '';
+      if (instruction.includes('left')) direction = 'left';
+      else if (instruction.includes('right')) direction = 'right';
+      
+      // Extract the street name if present
+      const ontoMatch = instruction.match(/onto (.+)/);
+      const streetName = ontoMatch ? ontoMatch[1] : '';
+      
+      // Build the instruction
+      return streetName 
+        ? `Turn ${direction} onto ${streetName}`
+        : `Turn ${direction}`;
+    }
+
+    // Handle continue/straight instructions
+    if (instruction.includes('straight') || instruction.includes('continue')) {
+      const onMatch = instruction.match(/on (.+)/);
+      const streetName = onMatch ? onMatch[1] : '';
+      
+      return streetName 
+        ? `Continue on ${streetName}`
+        : 'Continue straight';
+    }
+
+    // Default case - return original instruction with first letter capitalized
+    return instruction.charAt(0).toUpperCase() + instruction.slice(1);
+  };
+
   return (
     <View style={styles.container}>
       {/* Only show logout and notification when not navigating */}
       {!isNavigating && (
         <>
-          {/* <TouchableOpacity 
+          <TouchableOpacity 
             style={styles.logoutButton}
             onPress={handleLogout}
           >
             <MaterialIcons name="logout" size={24} color="#333" />
-          </TouchableOpacity> */}
+          </TouchableOpacity>
           <NotificationIcon style={styles.notificationIcon} />
         </>
       )}
@@ -921,7 +980,12 @@ const MainScreen = () => {
         <View style={styles.floatingDirections}>
           <View style={styles.directionCard}>
             <View style={styles.directionIcon}>
-              <MaterialIcons name="navigation" size={24} color="#3B82F6" />
+              {/* Use appropriate icon based on the instruction */}
+              <MaterialIcons 
+                name={getDirectionIcon(nextInstruction)} 
+                size={24} 
+                color="#3B82F6" 
+              />
             </View>
             <View style={styles.directionContent}>
               <Text style={styles.nextInstruction}>{nextInstruction}</Text>
