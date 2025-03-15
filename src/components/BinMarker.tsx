@@ -29,6 +29,9 @@ const BinMarker = ({ bin, isSelected, isRouteStop, onPress }: BinMarkerProps) =>
   };
 
   const markerColor = getFillLevelColor(bin.fillLevel);
+  // Don't show route or selection styling if bin is collected (0% fill level)
+  const showRouteStyle = isRouteStop && bin.fillLevel > 0;
+  const showSelectedStyle = isSelected && bin.fillLevel > 0;
 
   return (
     <Marker
@@ -40,8 +43,8 @@ const BinMarker = ({ bin, isSelected, isRouteStop, onPress }: BinMarkerProps) =>
     >
       <View style={[
         styles.markerContainer,
-        isSelected && styles.selectedMarker,
-        isRouteStop && styles.routeMarker
+        showSelectedStyle && styles.selectedMarker,
+        showRouteStyle && styles.routeMarker
       ]}>
         <View style={[styles.markerInner, { backgroundColor: markerColor }]}>
           <MaterialIcons 
@@ -50,8 +53,8 @@ const BinMarker = ({ bin, isSelected, isRouteStop, onPress }: BinMarkerProps) =>
             color="#fff" 
           />
         </View>
-        {isSelected && <View style={styles.selectedRing} />}
-        {isRouteStop && <View style={styles.routeRing} />}
+        {showSelectedStyle && <View style={styles.selectedRing} />}
+        {showRouteStyle && <View style={styles.routeRing} />}
       </View>
     </Marker>
   );
