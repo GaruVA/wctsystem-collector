@@ -83,10 +83,10 @@ const MainScreen = () => {
   const [isDumpLocationReached, setIsDumpLocationReached] = useState(false);
 
   // Define heights for different states
-  const homeDetailsHeight = 394; // Example height for home view
-  const routeDetailsHeight = 445; // Example height for route view
+  const homeDetailsHeight = 399; // Example height for home view
+  const routeDetailsHeight = 444; // Example height for route view
   const binDetailsHeight = 465; // Example height for bin details view
-  const navigationDetailsHeight = 415; // Height for turn-by-turn navigation sheet
+  const navigationDetailsHeight = 393; // Height for turn-by-turn navigation sheet
 
   // Function to get the current details container height
   const getDetailsHeight = () => {
@@ -976,8 +976,6 @@ const MainScreen = () => {
               onStartRoute={handleFinishRoute}
               onClose={handleExitRoute}
               routeName={`${activeRouteName} (${activeBins.length} Bins)`}
-              isNavigating={isNavigating}
-              collectedBins={collectedBins.size}
             />
           )
         )}

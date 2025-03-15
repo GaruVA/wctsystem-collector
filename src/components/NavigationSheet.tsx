@@ -63,7 +63,7 @@ const NavigationSheet = ({
         )}
         
         {/* Progress indicator */}
-        <View style={[styles.progressCard, !showDirections && styles.progressCardNoMargin]}>
+        <View style={styles.progressCard}>
           <View style={styles.progressHeader}>
             <MaterialIcons name="route" size={20} color="#3B82F6" />
             <Text style={styles.progressTitle}>Collection Progress</Text>
@@ -203,9 +203,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     textAlign: 'center',
-  },
-  progressCardNoMargin: {
-    marginTop: 16,
   },
   currentBinCard: {
     backgroundColor: '#F8FAFC',

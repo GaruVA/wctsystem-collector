@@ -9,8 +9,6 @@ interface RouteDetailsProps {
   onStartRoute: () => void;
   onClose?: () => void;
   routeName?: string;
-  isNavigating?: boolean; // New prop to indicate if in navigation mode
-  collectedBins?: number; // New prop to track collected bins
 }
 
 const RouteDetails = ({ 
@@ -19,9 +17,7 @@ const RouteDetails = ({
   binsCount, 
   onStartRoute,
   onClose,
-  routeName = 'Route Overview',
-  isNavigating = false,
-  collectedBins = 0
+  routeName = 'Route Overview'
 }: RouteDetailsProps) => {
   return (
     <View style={styles.container}>
@@ -52,54 +48,34 @@ const RouteDetails = ({
           </View>
         </View>
 
-        {isNavigating ? (
-          <View style={styles.progressCard}>
-            <View style={styles.progressHeader}>
-              <MaterialIcons name="format-list-numbered" size={20} color="#3B82F6" />
-              <Text style={styles.progressTitle}>Collection Progress</Text>
-            </View>
-            <View style={styles.progressBarContainer}>
-              <View 
-                style={[
-                  styles.progressBar,
-                  { width: `${binsCount > 0 ? (collectedBins / binsCount) * 100 : 0}%` }
-                ]} 
-              />
-            </View>
-            <Text style={styles.progressText}>
-              {collectedBins} of {binsCount} bins collected
-            </Text>
+        <View style={styles.infoCard}>
+          <View style={styles.infoHeader}>
+            <MaterialIcons name="info" size={20} color="#3B82F6" />
+            <Text style={styles.infoTitle}>Planning Mode</Text>
           </View>
-        ) : (
-          <View style={styles.infoCard}>
-            <View style={styles.infoHeader}>
-              <MaterialIcons name="info" size={20} color="#3B82F6" />
-              <Text style={styles.infoTitle}>Planning Mode</Text>
-            </View>
-            <Text style={styles.infoText}>
-              Tap bins on the map to add or remove them from your route
-            </Text>
-            <View style={styles.binsCount}>
-              <MaterialIcons name="delete" size={20} color="#6B7280" />
-              <Text style={styles.binsCountText}>{binsCount} bins selected</Text>
-            </View>
+          <Text style={styles.infoText}>
+            Tap bins on the map to add or remove them from your route
+          </Text>
+          <View style={styles.binsCount}>
+            <MaterialIcons name="delete" size={20} color="#6B7280" />
+            <Text style={styles.binsCountText}>{binsCount} bins selected</Text>
           </View>
-        )}
+        </View>
 
         <TouchableOpacity 
           style={[
             styles.actionButton,
-            isNavigating ? styles.endButton : styles.startButton
+            styles.startButton
           ]} 
           onPress={onStartRoute}
         >
           <MaterialIcons 
-            name={isNavigating ? "stop" : "directions"} 
+            name="directions" 
             size={20} 
             color="#fff" 
           />
           <Text style={styles.actionButtonText}>
-            {isNavigating ? 'End Navigation' : 'Start Route'}
+            Start Route
           </Text>
         </TouchableOpacity>
       </View>
@@ -164,39 +140,6 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 4,
   },
-  progressCard: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  progressTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginLeft: 8,
-  },
-  progressBarContainer: {
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: '#3B82F6',
-  },
-  progressText: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
   infoCard: {
     backgroundColor: '#F8FAFC',
     borderRadius: 12,
@@ -241,9 +184,6 @@ const styles = StyleSheet.create({
   },
   startButton: {
     backgroundColor: '#10B981',
-  },
-  endButton: {
-    backgroundColor: '#EF4444',
   },
   actionButtonText: {
     color: '#fff',
