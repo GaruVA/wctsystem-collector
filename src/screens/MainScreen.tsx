@@ -87,11 +87,18 @@ const MainScreen = () => {
   const routeDetailsHeight = 444; // Example height for route view
   const binDetailsHeight = 465; // Example height for bin details view
   const navigationDetailsHeight = 393; // Height for turn-by-turn navigation sheet
+  const navigationDetailsNoCurrentBinHeight = 195; // Height when no current bin is shown
 
   // Function to get the current details container height
   const getDetailsHeight = () => {
     if (isRouteActive) {
-      return isNavigating ? navigationDetailsHeight : routeDetailsHeight;
+      if (isNavigating) {
+        // When navigating, check if we have a current bin
+        return currentBinIndex >= 0 && currentBinIndex < activeBins.length 
+          ? navigationDetailsHeight 
+          : navigationDetailsNoCurrentBinHeight;
+      }
+      return routeDetailsHeight;
     }
     if (selectedBin) return binDetailsHeight;
     return homeDetailsHeight;
@@ -435,7 +442,7 @@ const MainScreen = () => {
     // - During navigation: Every 15 seconds (4 requests per minute)
     // - When route planning: Every 30 seconds (2 requests per minute)
     // - Normal mode: Every 60 seconds (1 request per minute)
-    const interval = isNavigating ? 3000 : isRouteActive ? 30000 : 60000;
+    const interval = isNavigating ? 2000 : isRouteActive ? 30000 : 60000;
     console.log(`MainScreen: Setting location polling interval to ${interval/1000} seconds`);
     
     const locationPoll = setInterval(fetchLocation, interval);
@@ -859,12 +866,12 @@ const MainScreen = () => {
       {/* Only show logout and notification when not navigating */}
       {!isNavigating && (
         <>
-          <TouchableOpacity 
+          {/* <TouchableOpacity 
             style={styles.logoutButton}
             onPress={handleLogout}
           >
             <MaterialIcons name="logout" size={24} color="#333" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <NotificationIcon style={styles.notificationIcon} />
         </>
       )}

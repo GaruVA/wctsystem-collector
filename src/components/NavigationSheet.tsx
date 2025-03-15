@@ -34,7 +34,7 @@ const NavigationSheet = ({
   onEndNavigation,
   showDirections = true // Default to true for backward compatibility
 }: NavigationSheetProps) => {
-  const currentBin = bins[currentBinIndex];
+  const currentBin = currentBinIndex >= 0 && currentBinIndex < bins.length ? bins[currentBinIndex] : null;
 
   return (
     <View style={styles.container}>
@@ -62,8 +62,11 @@ const NavigationSheet = ({
           </View>
         )}
         
-        {/* Progress indicator */}
-        <View style={styles.progressCard}>
+        {/* Progress indicator - Always show this */}
+        <View style={[
+          styles.progressCard,
+          !currentBin && styles.noMarginBottom
+        ]}>
           <View style={styles.progressHeader}>
             <MaterialIcons name="route" size={20} color="#3B82F6" />
             <Text style={styles.progressTitle}>Collection Progress</Text>
@@ -81,6 +84,7 @@ const NavigationSheet = ({
           </Text>
         </View>
 
+        {/* Current bin card - Only show if there's a current bin */}
         {currentBin && (
           <View style={styles.currentBinCard}>
             <Text style={styles.currentBinTitle}>Current Bin</Text>
@@ -176,6 +180,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
+  },
+  noMarginBottom: {
+    marginBottom: 0, // Remove bottom margin when it's the last element
   },
   progressHeader: {
     flexDirection: 'row',
