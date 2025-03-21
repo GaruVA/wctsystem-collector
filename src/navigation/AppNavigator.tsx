@@ -1,7 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/LoginScreen';
-import NotificationScreen from '../screens/NotificationScreen';
+// Removed NotificationScreen import
 import { useAuth } from '../context/AuthContext';
 import MainScreen from '../screens/MainScreen';
 import RouteCompletionScreen from '../screens/RouteCompletionScreen';
@@ -25,12 +25,6 @@ const AppNavigator = () => {
             name="Main"
             component={MainScreen}
             options={{ headerShown: false }}
-          />
-          
-          <Stack.Screen
-            name="Notification"
-            component={NotificationScreen}
-            options={{ headerShown: true, title: 'Notifications' }}
           />
           
           <Stack.Screen

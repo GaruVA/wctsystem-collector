@@ -1,7 +1,6 @@
 export type RootStackParamList = {
   Login: undefined;
   Main: undefined;
-  Notification: undefined;
   RouteCompletion: {
     collectedBinsCount: number;
     totalBinsCount: number;

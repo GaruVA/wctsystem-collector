@@ -7,7 +7,6 @@ import MapDisplay from '../components/MapDisplay';
 import RouteDetails from '../components/RouteDetails';
 import AreaDetails from '../components/AreaDetails';
 import BinDetails from '../components/BinDetails';
-import NotificationIcon from '../components/NotificationIcon';
 import ReportIssueModal from '../components/ReportIssueModal';
 import NavigationSheet from '../components/NavigationSheet';
 // Remove RouteCompletionSummary import since we'll navigate to a screen instead
@@ -942,7 +941,7 @@ const MainScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Only show logout and notification when not navigating */}
+      {/* Only show logout when not navigating - removed notification icon */}
       {!isNavigating && (
         <>
           <TouchableOpacity 
@@ -951,7 +950,6 @@ const MainScreen = () => {
           >
             <MaterialIcons name="logout" size={24} color="#333" />
           </TouchableOpacity>
-          <NotificationIcon style={styles.notificationIcon} />
         </>
       )}
 
@@ -1083,12 +1081,6 @@ const styles = StyleSheet.create({
   },
   mapContainer: {
     flex: 1,
-  },
-  notificationIcon: {
-    position: 'absolute',
-    right: 20,
-    top: 40,
-    zIndex: 1000
   },
   logoutButton: {
     position: 'absolute',
