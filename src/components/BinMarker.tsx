@@ -21,6 +21,18 @@ interface BinMarkerProps {
 }
 
 const BinMarker = ({ bin, isSelected, isRouteStop, onPress }: BinMarkerProps) => {
+  // Validate bin coordinates
+  if (!bin || !bin.location || !bin.location.coordinates || 
+      !Array.isArray(bin.location.coordinates) || 
+      bin.location.coordinates.length !== 2 ||
+      typeof bin.location.coordinates[0] !== 'number' || 
+      typeof bin.location.coordinates[1] !== 'number' ||
+      isNaN(bin.location.coordinates[0]) || 
+      isNaN(bin.location.coordinates[1])) {
+    console.log('BinMarker: Invalid bin coordinates', bin?.location?.coordinates);
+    return null;
+  }
+
   const getFillLevelColor = (level: number) => {
     if (level >= 90) return '#EF4444';
     if (level >= 70) return '#F59E0B';
@@ -66,8 +78,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   markerInner: {
-    width: 32,
-    height: 32,
+    width: 28,
+    height: 28,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',

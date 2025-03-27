@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 
 const API_BASE = Platform.OS === 'android'
-  ? 'http://192.168.1.24:5000/api'
+  ? 'http://10.95.136.31:5000/api'
   : 'http://localhost:5000/api';
 
 console.log('API_BASE URL:', API_BASE);
@@ -11,9 +11,16 @@ console.log('API_BASE URL:', API_BASE);
 interface AreaData {
   areaName: string;
   areaID: string;
-  coordinates: [number, number][];
+  geometry: {
+    type: string;
+    coordinates: [number, number][][]; // GeoJSON Polygon format [[[lon, lat], [lon, lat], ...]]
+  };
   bins: Bin[];
-  dumpLocation: {
+  startLocation: {
+    type: string;
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+  endLocation: {
     type: string;
     coordinates: [number, number]; // [longitude, latitude]
   };
@@ -44,9 +51,9 @@ export const loginCollector = async (username: string, password: string) => {
 };
 
 /**
- * Get collector's assigned area including bins and dump location
+ * Get collector's assigned area including bins, start location and end location
  * @param token Auth token
- * @returns Area data including coordinates, bins, and dump location
+ * @returns Area data including coordinates, bins, start location and end location
  */
 export const getCollectorArea = async (token: string): Promise<AreaData> => {
   console.log('API: Fetching collector area data');
@@ -60,7 +67,8 @@ export const getCollectorArea = async (token: string): Promise<AreaData> => {
     console.log('API: Area data received', {
       areaName: areaData.areaName,
       binCount: areaData.bins?.length || 0,
-      hasDumpLocation: !!areaData.dumpLocation
+      hasStartLocation: !!areaData.startLocation,
+      hasEndLocation: !!areaData.endLocation
     });
 
     return areaData;
