@@ -40,7 +40,11 @@ const MainScreen = () => {
     latitude: 40.748,
     longitude: -73.98
   });
-  const [dumpLocation, setDumpLocation] = useState({
+  const [startLocation, setStartLocation] = useState({
+    latitude: 40.7400,
+    longitude: -73.9900
+  });
+  const [endLocation, setEndLocation] = useState({
     latitude: 40.7300,
     longitude: -73.9950
   });
@@ -147,7 +151,7 @@ const MainScreen = () => {
         // All bins collected, just route to dump location
         const waypoints: [number, number][] = [
           [startLocation.longitude, startLocation.latitude],
-          [dumpLocation.longitude, dumpLocation.latitude]
+          [endLocation.longitude, endLocation.latitude]
         ];
         
         const newRouteData = await generateRoutePolyline(waypoints, [], token);
@@ -166,7 +170,7 @@ const MainScreen = () => {
         // Check if we're already at the dump location
         const isClose = isCloseToWaypoint(
           startLocation,
-          [dumpLocation.longitude, dumpLocation.latitude],
+          [endLocation.longitude, endLocation.latitude],
           100 // 100m threshold
         );
         
@@ -184,7 +188,7 @@ const MainScreen = () => {
       const optimizedOrder = await optimizeBinOrder(
         startLocation,
         remainingBins.map(bin => bin.location.coordinates),
-        dumpLocation,
+        endLocation,
         token
       );
       
@@ -196,7 +200,7 @@ const MainScreen = () => {
       const waypoints: [number, number][] = [
         [startLocation.longitude, startLocation.latitude],
         ...optimizedOrder.optimizedStops,
-        [dumpLocation.longitude, dumpLocation.latitude]
+        [endLocation.longitude, endLocation.latitude]
       ];
       
       const newRouteData = await generateRoutePolyline(waypoints, optimizedOrder.stops_sequence, token);
@@ -331,10 +335,17 @@ const MainScreen = () => {
         const data = await getCollectorArea(token);
         setAreaData(data);
         
-        if (data.dumpLocation) {
-          setDumpLocation({
-            latitude: data.dumpLocation.coordinates[1],
-            longitude: data.dumpLocation.coordinates[0]
+        if (data.startLocation) {
+          setStartLocation({
+            latitude: data.startLocation.coordinates[1],
+            longitude: data.startLocation.coordinates[0]
+          });
+        }
+        
+        if (data.endLocation) {
+          setEndLocation({
+            latitude: data.endLocation.coordinates[1],
+            longitude: data.endLocation.coordinates[0]
           });
         }
       } catch (error) {
@@ -356,7 +367,7 @@ const MainScreen = () => {
     if (collectedBins.size === activeBins.length && currentLocation) {
       const isClose = isCloseToWaypoint(
         currentLocation,
-        [dumpLocation.longitude, dumpLocation.latitude],
+        [endLocation.longitude, endLocation.latitude],
         100 // 100m threshold
       );
 
@@ -367,7 +378,7 @@ const MainScreen = () => {
     }
   }, [
     currentLocation, 
-    dumpLocation, 
+    endLocation, 
     isRouteActive, 
     isNavigating, 
     collectedBins.size,
@@ -411,7 +422,7 @@ const MainScreen = () => {
               if (collectedBins.size === activeBins.length && !isDumpLocationReached) {
                 const isClose = isCloseToWaypoint(
                   newLocation,
-                  [dumpLocation.longitude, dumpLocation.latitude],
+                  [endLocation.longitude, endLocation.latitude],
                   100 // 100m threshold
                 );
                 
@@ -453,7 +464,7 @@ const MainScreen = () => {
       isMounted = false;
       clearInterval(locationPoll);
     };
-  }, [token, isRouteActive, isNavigating, activeBins, collectedBins, lastRouteLocation, isDumpLocationReached, dumpLocation]);
+  }, [token, isRouteActive, isNavigating, activeBins, collectedBins, lastRouteLocation, isDumpLocationReached, endLocation]);
 
   // Handle Android back button
   useEffect(() => {
@@ -572,7 +583,7 @@ const MainScreen = () => {
       const optimizedOrder = await optimizeBinOrder(
         startLocation,
         binsForRoute.map(bin => bin.location.coordinates),
-        dumpLocation,
+        endLocation,
         token
       );
       setOptimizedBinOrder(optimizedOrder.optimizedStops);
@@ -582,7 +593,7 @@ const MainScreen = () => {
       const waypoints: [number, number][] = [
         [startLocation.longitude, startLocation.latitude],
         ...optimizedOrder.optimizedStops,
-        [dumpLocation.longitude, dumpLocation.latitude]
+        [endLocation.longitude, endLocation.latitude]
       ];
 
       const newRouteData = await generateRoutePolyline(waypoints, optimizedOrder.stops_sequence, token);
@@ -817,7 +828,7 @@ const MainScreen = () => {
     if (collectedBins.size === activeBins.length && currentLocation) {
       const isClose = isCloseToWaypoint(
         currentLocation,
-        [dumpLocation.longitude, dumpLocation.latitude],
+        [endLocation.longitude, endLocation.latitude],
         100 // 100m threshold
       );
 
@@ -842,7 +853,7 @@ const MainScreen = () => {
     }
   }, [
     currentLocation, 
-    dumpLocation, 
+    endLocation, 
     isRouteActive, 
     isNavigating, 
     collectedBins.size,
@@ -967,7 +978,8 @@ const MainScreen = () => {
           area={!isRouteActive ? areaData || undefined : undefined}
           fitToArea={!isRouteActive}
           currentLocation={currentLocation}
-          dumpLocation={dumpLocation}
+          startLocation={startLocation}
+          endLocation={endLocation}
           onBinSelect={handleBinSelect}
           selectedBin={isRouteActive ? null : selectedBin}
         />

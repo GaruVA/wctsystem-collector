@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import MapView, { Polyline, Marker, Polygon } from 'react-native-maps';
 import BinMarker from './BinMarker';
-import DumpLocation from './DumpLocation';
+import EndLocation from './EndLocation';
+import StartLocation from './StartLocation';
 
 interface Bin {
   _id: string;
@@ -17,9 +18,16 @@ interface Bin {
 interface AreaData {
   areaName: string;
   areaID: string;
-  coordinates: [number, number][];
+  geometry: {
+    type: string;
+    coordinates: [number, number][][]; // GeoJSON Polygon format [[[lon, lat], [lon, lat], ...]]
+  };
   bins: Bin[];
-  dumpLocation: {
+  startLocation: {
+    type: string;
+    coordinates: [number, number];
+  };
+  endLocation: {
     type: string;
     coordinates: [number, number];
   };
@@ -46,7 +54,11 @@ interface MapDisplayProps {
     latitude: number;
     longitude: number;
   };
-  dumpLocation?: {
+  startLocation?: {
+    latitude: number;
+    longitude: number;
+  };
+  endLocation?: {
     latitude: number;
     longitude: number;
   };
@@ -64,7 +76,8 @@ const MapDisplay = ({
   area,
   fitToArea = false,
   currentLocation,
-  dumpLocation,
+  startLocation,
+  endLocation,
   onBinSelect,
   selectedBin = null // Default to null
 }: MapDisplayProps) => {
@@ -76,7 +89,7 @@ const MapDisplay = ({
     hasCurrentSegment: currentSegment.length > 0,
     currentSegmentPoints: currentSegment.length,
     hasCurrentLocation: !!currentLocation,
-    hasDumpLocation: !!dumpLocation,
+    hasDumpLocation: !!endLocation,
     fitToRoute,
     fitToCurrentSegment,
     fitToArea,
@@ -102,12 +115,29 @@ const MapDisplay = ({
   });
   
   // Format area coordinates to display area polygon (if we have area data)
-  const areaCoordinates = area?.coordinates.map(coord => {
-    return {
-      latitude: coord[1],
-      longitude: coord[0]
-    };
-  }) || [];
+  const areaCoordinates = React.useMemo(() => {
+    try {
+      if (area?.geometry?.coordinates && 
+          Array.isArray(area.geometry.coordinates) && 
+          area.geometry.coordinates.length > 0 && 
+          Array.isArray(area.geometry.coordinates[0])) {
+        return area.geometry.coordinates[0].map(coord => {
+          if (Array.isArray(coord) && coord.length >= 2 && 
+              typeof coord[0] === 'number' && typeof coord[1] === 'number' &&
+              !isNaN(coord[0]) && !isNaN(coord[1])) {
+            return {
+              latitude: coord[1],
+              longitude: coord[0]
+            };
+          }
+          return null;
+        }).filter(coord => coord !== null) as {latitude: number, longitude: number}[];
+      }
+    } catch (error) {
+      console.error('MapDisplay: Error formatting area coordinates:', error);
+    }
+    return [];
+  }, [area]);
 
   const fitToRoutePoints = useCallback(() => {
     console.log('MapDisplay: Fitting to route points');
@@ -153,7 +183,7 @@ const MapDisplay = ({
     if (mapRef.current && areaCoordinates.length > 0) {
       try {
         mapRef.current.fitToCoordinates(areaCoordinates, {
-          edgePadding: { top: 50, right: 50, bottom: 30, left: 50 },
+          edgePadding: { top: 50, right: 0, bottom: 30, left: 0 },
           animated: true
         });
         console.log('MapDisplay: Map fitted to area successfully');
@@ -278,7 +308,10 @@ const MapDisplay = ({
       )}
 
       {/* Current location marker (if provided) */}
-      {currentLocation && (
+      {currentLocation && typeof currentLocation.latitude === 'number' && 
+        typeof currentLocation.longitude === 'number' && 
+        !isNaN(currentLocation.latitude) && 
+        !isNaN(currentLocation.longitude) && (
         <Marker 
           coordinate={currentLocation} 
           title="Your Location"
@@ -291,8 +324,13 @@ const MapDisplay = ({
         </Marker>
       )}
 
-      {/* Dump location marker (if provided) */}
-      {dumpLocation && <DumpLocation coordinate={dumpLocation} />}
+      {/* End location marker (if provided) */}
+      {endLocation && <EndLocation coordinate={endLocation} />}
+
+      {/* Start location marker (if provided) */}
+      {startLocation && (
+        <StartLocation coordinate={startLocation} />
+      )}
 
       {/* Complete route polyline (in a lighter color if we're navigating) */}
       {routeCoordinates.length > 0 && (
